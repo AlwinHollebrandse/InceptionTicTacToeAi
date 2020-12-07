@@ -107,6 +107,7 @@ def printEntireBoard():
           str(entire_game_state[7][2][0]) + ' | ' + str(entire_game_state[7][2][1]) + ' | ' + str(entire_game_state[7][2][2]) + ' ||| ' +
           str(entire_game_state[8][2][0]) + ' | ' + str(entire_game_state[8][2][1]) + ' | ' + str(entire_game_state[8][2][2]) + ' |')    
     print('-----------------------------------------')
+    print('\n\n\n')
 
 # Playing
 global_current_state = "Not Done"
@@ -136,7 +137,8 @@ while global_current_state == "Not Done":
         print_board(global_game_state)
         availableLocalBoards.remove(localBoard)
         global_game_state[int((localBoard)/3)][(localBoard)%3] = localWinner
-    localBoard = nextLocalBoard
+    else:
+        localBoard = nextLocalBoard
 
     printEntireBoard()
     globalWinner, global_current_state = check_current_state(global_game_state)
