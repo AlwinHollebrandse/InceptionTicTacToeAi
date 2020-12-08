@@ -1,4 +1,5 @@
 # import numpy as np # TODO set up virtual env
+import random
 
 global_game_state = [[' ',' ',' '],
                      [' ',' ',' '],
@@ -51,6 +52,15 @@ def check_current_state(board):
         return board[1][1], "Done"
     
     return None, "Not Done"
+
+def getAvailableLocalMoves(board):
+    availableMoves = []
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] is ' ':
+                availableMoves.append(i*3 + (j))
+    print(availableMoves)
+    return availableMoves
 
 def print_board(board): # TODO is a local board print needed?
     print('\n--------------')
@@ -115,28 +125,44 @@ availableLocalBoards = [i for i in range(9)]
 globalWinner = None
 print("New Game!")
 printEntireBoard()
-player_choice = input("Choose which player goes first - X or O: ")
+player_choice = input("Choose which player goes first - X(human) or O(\"ai\"): ")
 if player_choice.lower() == 'x':
     current_player_idx = 0
 else:
     current_player_idx = 1
 
-localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place first (0 to 8): "))
+if current_player_idx == 0: # human
+    localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place first (0 to 8): "))
+else: # ai
+    localBoard = random.choice(availableLocalBoards)
+
 while global_current_state == "Not Done":
-    localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
+    print("main localBoard: " + str(localBoard))
+    localWinner, local_current_state = check_current_state(entire_game_state[localBoard]) # TODO BUG: TypeError: list indices must be integers or slices, not NoneType
     # print_board(entire_game_state[localBoard])
     while local_current_state != "Not Done":
-        localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place in (" + ', '.join(str(x) for x in availableLocalBoards) + "): ")) #TODO why doesnt *availableLocalBoards work?
-        localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
+        if current_player_idx == 0: # human
+            localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place in (" + ', '.join(str(x) for x in availableLocalBoards) + "): ")) #TODO why doesnt *availableLocalBoards work?
+            localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
+        else: # ai
+            localBoard = random.choice(availableLocalBoards)
+            localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
+            print("here " + str(localBoard) + " "+ ', '.join(str(x) for x in availableLocalBoards)) #TODO here is the inf loop
 
-    block_num = int(input(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")) # TODO only show valid moves
+    if current_player_idx == 0: # human
+        block_num = int(input(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")) # TODO only show valid moves
+    else: # ai
+        print("localBoard: " + str(localBoard))
+        block_num = random.choice(getAvailableLocalMoves(entire_game_state[localBoard]))
+        print("ai played at localboard: " + str(localBoard) + ", " + str(block_num) + ", block_num: " + str(block_num)) # TODO move to after board print
+
     nextLocalBoard = play_move(players[current_player_idx], entire_game_state[localBoard], block_num)
     localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
     if local_current_state != "Not Done":
         print("localWinner: " + str(localWinner))
-        availableLocalBoards.remove(localBoard)
+        availableLocalBoards.remove(localBoard) # TODO fill local board with -'s
         global_game_state[int((localBoard)/3)][(localBoard)%3] = localWinner
-        print_board(global_game_state)
+        print_board(global_game_state) # TODO didnt update BUG its always a step behind
     else:
         localBoard = nextLocalBoard
 
@@ -149,3 +175,8 @@ while global_current_state == "Not Done":
     
     if global_current_state is "Draw":
         print("Draw!")
+
+# TODO it also let me play in a  won board BUG
+# TODO also breaks when ai has to choose a new local board BUG
+# TODO I got to go twice BUG
+# TODO it skipped my placement...related to above bug?...but I cant place there after, so non empty? - BUG doesnt print all
