@@ -62,6 +62,12 @@ def getAvailableLocalMoves(board):
     print(availableMoves)
     return availableMoves
 
+def fillAllLocalEmptySpaces(board):
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == ' ':
+                board[i][j] = '-'
+
 def print_board(board): # TODO is a local board print needed?
     print('\n--------------')
     print('| ' + str(board[0][0]) + ' | ' + str(board[0][1]) + ' | ' + str(board[0][2]) + ' |')
@@ -122,7 +128,7 @@ def printEntireBoard():
 # Playing
 global_current_state = "Not Done"
 availableLocalBoards = [i for i in range(9)]
-globalWinner = None
+globalWinner, ai_localBoard, ai_Block_num = None
 print("New Game!")
 printEntireBoard()
 player_choice = input("Choose which player goes first - X(human) or O(\"ai\"): ")
@@ -138,7 +144,7 @@ else: # ai
 
 while global_current_state == "Not Done":
     print("main localBoard: " + str(localBoard))
-    localWinner, local_current_state = check_current_state(entire_game_state[localBoard]) # TODO BUG: TypeError: list indices must be integers or slices, not NoneType
+    localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
     # print_board(entire_game_state[localBoard])
     while local_current_state != "Not Done":
         if current_player_idx == 0: # human
@@ -147,26 +153,29 @@ while global_current_state == "Not Done":
         else: # ai
             localBoard = random.choice(availableLocalBoards)
             localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
-            print("here " + str(localBoard) + " "+ ', '.join(str(x) for x in availableLocalBoards)) #TODO here is the inf loop
 
     if current_player_idx == 0: # human
         block_num = int(input(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")) # TODO only show valid moves
     else: # ai
-        print("localBoard: " + str(localBoard))
         block_num = random.choice(getAvailableLocalMoves(entire_game_state[localBoard]))
-        print("ai played at localboard: " + str(localBoard) + ", " + str(block_num) + ", block_num: " + str(block_num)) # TODO move to after board print
-
+        ai_Block_num = block_num
+        ai_localBoard = localBoard
+    
     nextLocalBoard = play_move(players[current_player_idx], entire_game_state[localBoard], block_num)
     localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
     if local_current_state != "Not Done":
         print("localWinner: " + str(localWinner))
-        availableLocalBoards.remove(localBoard) # TODO fill local board with -'s
+        availableLocalBoards.remove(localBoard)
+        fillAllLocalEmptySpaces(entire_game_state[localBoard])
         global_game_state[int((localBoard)/3)][(localBoard)%3] = localWinner
-        print_board(global_game_state) # TODO didnt update BUG its always a step behind
+        print_board(global_game_state)
     else:
         localBoard = nextLocalBoard
 
-    printEntireBoard()
+    if current_player_idx == 1: # ai
+        printEntireBoard()
+        print("ai placed at localBoard: " + str(ai_localBoard) + ", position: " + str(ai_Block_num))
+        
     globalWinner, global_current_state = check_current_state(global_game_state)
     if globalWinner is not None:
         print(str(globalWinner) + " won!")
@@ -176,7 +185,6 @@ while global_current_state == "Not Done":
     if global_current_state is "Draw":
         print("Draw!")
 
-# TODO it also let me play in a  won board BUG
-# TODO also breaks when ai has to choose a new local board BUG
-# TODO I got to go twice BUG
+# TODO skipped me on turn 1... ai has 2 prints...but one wasnt actauly "there"...its a print bug
+# TODO I got to go twice BUG - could also be print bug. havent seen it again
 # TODO it skipped my placement...related to above bug?...but I cant place there after, so non empty? - BUG doesnt print all

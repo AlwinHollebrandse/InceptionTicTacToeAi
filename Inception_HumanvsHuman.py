@@ -17,7 +17,6 @@ def play_move(player, localBoard, block_num):
         block_num = int(input("Block is not empty, ya blockhead! Choose again: "))
         return play_move(player, localBoard, block_num)
     
-    
 def check_current_state(board):
     # Check if draw
     draw_flag = 0
@@ -51,6 +50,13 @@ def check_current_state(board):
         return board[1][1], "Done"
     
     return None, "Not Done"
+
+def fillAllLocalEmptySpaces(board):
+    print(board)
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == ' ':
+                board[i][j] = '-'
 
 def print_board(board): # TODO is a local board print needed?
     print('\n--------------')
@@ -135,6 +141,7 @@ while global_current_state == "Not Done":
     if local_current_state != "Not Done":
         print("localWinner: " + str(localWinner))
         availableLocalBoards.remove(localBoard)
+        fillAllLocalEmptySpaces(entire_game_state[localBoard])
         global_game_state[int((localBoard)/3)][(localBoard)%3] = localWinner
         print_board(global_game_state)
     else:
