@@ -193,34 +193,32 @@ def getBestMove(entire_game_state, global_game_state, localBoard, player):
         return 0
         
     moves = []
-    empty_cells = {}
+    empty_cells = []
     localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
     
     # if the given local board is alreday completed, check all global moves
     if local_current_state != "Not Done":
         for currentLocalBoard in range(9):
             if global_game_state[int((currentLocalBoard)/3)][(currentLocalBoard)%3] is ' ':
-                empty_cells[currentLocalBoard] = []
                 for i in range(3):
                     for j in range(3):
                         if entire_game_state[currentLocalBoard][i][j] is ' ':
-                            empty_cells[currentLocalBoard].append(i*3 + j)
+                            empty_cells.append(currentLocalBoard * 9 + (i*3 + j))
 
     else: # if the local board has a valid move, check all local moves
-        empty_cells[localBoard] = []
         for i in range(3):
             for j in range(3):
                 if entire_game_state[localBoard][i][j] is ' ':
-                    empty_cells[localBoard].append(i*3 + j)
+                    empty_cells.append(localBoard * 9 + (i*3 + j))
     
-    for empty_cell in [currentLocalBoard in empty_cells]: # TODO check formatting/ fucntionality
+    for empty_cell in empty_cells:
         move = {}
-        move['index'] = {}
-        move['index']['localBoard'] = currentLocalBoard
-        move['index']['block_num'] = empty_cell
+        move['index'] = empty_cell
         new_entire_game_state = copy_entire_game_state(entire_game_state)
         new_global_game_state = copy_global_game_state(global_game_state)
-        play_move(new_entire_game_state[currentLocalBoard], player, empty_cell)
+        temp_block_num = empty_cell % 9
+        temp_localBoard = empty_cell / 9
+        play_move(new_entire_game_state[temp_localBoard], player, temp_block_num)
 
         if player == 'O':    # If AI
             # make more depth tree for human
