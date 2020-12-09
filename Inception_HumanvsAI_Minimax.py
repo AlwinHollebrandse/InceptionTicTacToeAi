@@ -1,4 +1,6 @@
 # import numpy as np # TODO set up virtual env
+# TODO rename localBoard to localBoardIndex?
+# TODO rename block_num to position
 
 global_game_state = [[' ',' ',' '],
                      [' ',' ',' '],
@@ -178,36 +180,55 @@ while global_current_state == "Not Done":
 
 
 
-def getBestMove(state, player):
+def getBestMove(entire_game_state, global_game_state, localBoard, player):
     '''
     Minimax Algorithm
     '''
-    winner_loser , done = check_current_state(state)
-    if done == "Done" and winner_loser == 'O': # If AI won
+    global_winner_loser, done = check_current_state(global_game_state)
+    if done == "Done" and global_winner_loser == 'O': # If AI won
         return 1
-    elif done == "Done" and winner_loser == 'X': # If Human won
+    elif done == "Done" and global_winner_loser == 'X': # If Human won
         return -1
     elif done == "Draw":    # Draw condition
         return 0
         
     moves = []
-    empty_cells = []
-    for i in range(3):
-        for j in range(3):
-            if state[i][j] is ' ':
-                empty_cells.append(i*3 + (j+1))
+    empty_cells = {}
+    localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
     
-    for empty_cell in empty_cells:
+    # if the given local board is alreday completed, check all global moves
+    if local_current_state != "Not Done":
+        for currentLocalBoard in range(9):
+            if global_game_state[int((currentLocalBoard)/3)][(currentLocalBoard)%3] is ' ':
+                empty_cells[currentLocalBoard] = []
+                for i in range(3):
+                    for j in range(3):
+                        if entire_game_state[currentLocalBoard][i][j] is ' ':
+                            empty_cells[currentLocalBoard].append(i*3 + j)
+
+    else: # if the local board has a valid move, check all local moves
+        empty_cells[localBoard] = []
+        for i in range(3):
+            for j in range(3):
+                if entire_game_state[localBoard][i][j] is ' ':
+                    empty_cells[localBoard].append(i*3 + j)
+    
+    for empty_cell in [currentLocalBoard in empty_cells]: # TODO check formatting/ fucntionality
         move = {}
-        move['index'] = empty_cell
-        new_state = copy_game_state(state)
-        play_move(new_state, player, empty_cell)
-        
+        move['index'] = {}
+        move['index']['localBoard'] = currentLocalBoard
+        move['index']['block_num'] = empty_cell
+        new_entire_game_state = copy_entire_game_state(entire_game_state)
+        new_global_game_state = copy_global_game_state(global_game_state)
+        play_move(new_entire_game_state[currentLocalBoard], player, empty_cell)
+
         if player == 'O':    # If AI
-            result = getBestMove(new_state, 'X')    # make more depth tree for human
+            # make more depth tree for human
+            result = getBestMove(new_entire_game_state, new_global_game_state, currentLocalBoard, 'X')
             move['score'] = result
         else:
-            result = getBestMove(new_state, 'O')    # make more depth tree for AI
+            # make more depth tree for AI
+            result = getBestMove(new_entire_game_state, new_global_game_state, currentLocalBoard, 'O')
             move['score'] = result
         
         moves.append(move)

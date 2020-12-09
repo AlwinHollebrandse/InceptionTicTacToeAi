@@ -143,7 +143,6 @@ else: # ai
     localBoard = random.choice(availableLocalBoards)
 
 while global_current_state == "Not Done":
-    print("main localBoard: " + str(localBoard))
     localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
     # print_board(entire_game_state[localBoard])
     while local_current_state != "Not Done":
