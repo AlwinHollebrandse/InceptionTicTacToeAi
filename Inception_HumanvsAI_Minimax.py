@@ -1,14 +1,8 @@
 # import numpy as np # TODO set up virtual env
-# TODO rename localBoard to localBoardIndex?
-# TODO rename block_num to position
+# TODO rename localBoard to localBoardIndex when needed for clarity
+# TODO rename block_num to position?
+# TODO BUG RecursionError: maximum recursion depth exceeded in comparison
 
-global_game_state = [[' ',' ',' '],
-                     [' ',' ',' '],
-                     [' ',' ',' ']]
-
-entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
-                     [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
-                     [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
 players = ['X','O']
 
 def play_move(player, localBoard, block_num):
@@ -30,7 +24,7 @@ def copy_entire_game_state(entire_board): # TODO add one for just global?
                 new_entire_game_state[i][j][k] = entire_board[i][j][k]
     return new_entire_game_state
 
-def copy_global_game_state(board): # TODO add one for just global?
+def copy_global_game_state(board): # TODO keep?
     new_global_game = [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]
     for i in range(3):
         for j in range(3):
@@ -79,7 +73,7 @@ def fillAllLocalEmptySpaces(board):
                 board[i][j] = '-'
 
 def print_board(board): # TODO is a local board print needed?
-    print('\n--------------')
+    print('\n-------------')
     print('| ' + str(board[0][0]) + ' | ' + str(board[0][1]) + ' | ' + str(board[0][2]) + ' |')
     print('-------------')
     print('| ' + str(board[1][0]) + ' | ' + str(board[1][1]) + ' | ' + str(board[1][2]) + ' |')
@@ -87,7 +81,7 @@ def print_board(board): # TODO is a local board print needed?
     print('| ' + str(board[2][0]) + ' | ' + str(board[2][1]) + ' | ' + str(board[2][2]) + ' |')
     print('-------------')
 
-def printEntireBoard():
+def printEntireBoard(entire_game_state):
     # TODO refactor via for loop
     # Top 3 games
     print('\n-----------------------------------------')
@@ -135,55 +129,10 @@ def printEntireBoard():
     print('-----------------------------------------')
     print('\n\n\n')
 
-# Playing
-global_current_state = "Not Done"
-availableLocalBoards = [i for i in range(9)]
-globalWinner = None
-print("New Game!")
-printEntireBoard()
-player_choice = input("Choose which player goes first - X or O: ")
-if player_choice.lower() == 'x':
-    current_player_idx = 0
-else:
-    current_player_idx = 1
-
-localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place first (0 to 8): "))
-while global_current_state == "Not Done":
-    localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
-    # print_board(entire_game_state[localBoard])
-    while local_current_state != "Not Done":
-        localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place in (" + ', '.join(str(x) for x in availableLocalBoards) + "): ")) #TODO why doesnt *availableLocalBoards work?
-        localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
-
-    block_num = int(input(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")) # TODO only show valid moves
-    nextLocalBoard = play_move(players[current_player_idx], entire_game_state[localBoard], block_num)
-    localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
-    if local_current_state != "Not Done":
-        print("localWinner: " + str(localWinner))
-        availableLocalBoards.remove(localBoard)
-        fillAllLocalEmptySpaces(entire_game_state[localBoard])
-        global_game_state[int((localBoard)/3)][(localBoard)%3] = localWinner
-        print_board(global_game_state)
-    else:
-        localBoard = nextLocalBoard
-
-    printEntireBoard()
-    globalWinner, global_current_state = check_current_state(global_game_state)
-    if globalWinner is not None:
-        print(str(globalWinner) + " won!")
-    else:
-        current_player_idx = (current_player_idx + 1)%2
-    
-    if global_current_state is "Draw":
-        print("Draw!")
-
-
-
-
+'''
+Minimax Algorithm
+'''
 def getBestMove(entire_game_state, global_game_state, localBoard, player):
-    '''
-    Minimax Algorithm
-    '''
     global_winner_loser, done = check_current_state(global_game_state)
     if done == "Done" and global_winner_loser == 'O': # If AI won
         return 1
@@ -217,16 +166,16 @@ def getBestMove(entire_game_state, global_game_state, localBoard, player):
         new_entire_game_state = copy_entire_game_state(entire_game_state)
         new_global_game_state = copy_global_game_state(global_game_state)
         temp_block_num = empty_cell % 9
-        temp_localBoard = empty_cell / 9
-        play_move(new_entire_game_state[temp_localBoard], player, temp_block_num)
+        temp_localBoard = int(empty_cell / 9)
+        play_move(player, new_entire_game_state[temp_localBoard], temp_block_num)
 
         if player == 'O':    # If AI
             # make more depth tree for human
-            result = getBestMove(new_entire_game_state, new_global_game_state, currentLocalBoard, 'X')
+            result = getBestMove(new_entire_game_state, new_global_game_state, temp_localBoard, 'X')
             move['score'] = result
         else:
             # make more depth tree for AI
-            result = getBestMove(new_entire_game_state, new_global_game_state, currentLocalBoard, 'O')
+            result = getBestMove(new_entire_game_state, new_global_game_state, temp_localBoard, 'O')
             move['score'] = result
         
         moves.append(move)
@@ -250,37 +199,70 @@ def getBestMove(entire_game_state, global_game_state, localBoard, player):
 
 # Playing
 play_again = 'Y'
-while play_again == 'Y' or play_again == 'y':
-    game_state = [[' ',' ',' '],
-              [' ',' ',' '],
-              [' ',' ',' ']]
-    current_state = "Not Done"
+while play_again.lower() == 'y':
+    global_game_state = [[' ',' ',' '],
+                         [' ',' ',' '],
+                         [' ',' ',' ']]
+
+    entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
+                         [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
+                         [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
+
+    global_current_state = "Not Done"
+    globalWinner = None
+    ai_localBoard = None
+    ai_Block_num = None
+    # globalWinner, ai_localBoard, ai_Block_num = None # TODO TypeError: 'NoneType' object is not iterable, but above doesnt...
+
     print("\nNew Game!")
-    print_board(game_state)
-    player_choice = input("Choose which player goes first - X (You - the petty human) or O(The mighty AI): ")
-    winner = None
-    
+    printEntireBoard(entire_game_state)
+    player_choice = input("Choose which player goes first - X(human) or O(MiniMax AI): ")
     if player_choice == 'X' or player_choice == 'x':
         current_player_idx = 0
     else:
         current_player_idx = 1
         
-    while current_state == "Not Done":
+    if current_player_idx == 0: # human
+        localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place first (0 to 8): "))
+    else: # ai
+        localBoard = 0 # TODO dont hard code... just call getBestMove
+
+    while global_current_state == "Not Done":
+        localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
         if current_player_idx == 0: # Human's turn
-            block_choice = int(input("Oye Human, your turn! Choose where to place (1 to 9): "))
-            play_move(game_state ,players[current_player_idx], block_choice)
+            while local_current_state != "Not Done":
+                localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place in"))# TODO (" + ', '.join(str(x) for x in availableLocalBoards) + "): ")) #TODO why doesnt *availableLocalBoards work?
+                localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
+            block_num = int(input(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")) # TODO only show valid moves
+
         else:   # AI's turn
-            block_choice = getBestMove(game_state, players[current_player_idx])
-            play_move(game_state ,players[current_player_idx], block_choice)
-            print("AI plays move: " + str(block_choice))
-        print_board(game_state)
-        winner, current_state = check_current_state(game_state)
-        if winner is not None:
-            print(str(winner) + " won!")
+            block_num = getBestMove(entire_game_state, global_game_state, localBoard, players[current_player_idx])
+            # TODO check if the ai is actually limited to current localBoard when possible...
+            ai_Block_num = block_num % 9
+            ai_localBoard = int(localBoard / 9)
+
+        nextLocalBoard = play_move(players[current_player_idx], entire_game_state[localBoard], block_num)
+        localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
+        if local_current_state != "Not Done":
+            print("localWinner: " + str(localWinner))
+            # availableLocalBoards.remove(localBoard) # TODO update an available boards...
+            fillAllLocalEmptySpaces(entire_game_state[localBoard])
+            global_game_state[int((localBoard)/3)][(localBoard)%3] = localWinner
+            print_board(global_game_state)
+        else:
+            localBoard = nextLocalBoard
+
+        if current_player_idx == 1: # ai
+            printEntireBoard(entire_game_state)
+            print("ai placed at localBoard: " + str(ai_localBoard) + ", position: " + str(ai_Block_num))
+            
+        globalWinner, global_current_state = check_current_state(global_game_state)
+        if globalWinner is not None:
+            print(str(globalWinner) + " won!")
         else:
             current_player_idx = (current_player_idx + 1)%2
         
-        if current_state is "Draw":
+        if global_current_state is "Draw":
             print("Draw!")
             
     play_again = input('Wanna try again?(Y/N) : ')

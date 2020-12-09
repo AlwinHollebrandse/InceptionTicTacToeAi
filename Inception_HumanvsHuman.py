@@ -59,7 +59,7 @@ def fillAllLocalEmptySpaces(board):
                 board[i][j] = '-'
 
 def print_board(board): # TODO is a local board print needed?
-    print('\n--------------')
+    print('\n-------------')
     print('| ' + str(board[0][0]) + ' | ' + str(board[0][1]) + ' | ' + str(board[0][2]) + ' |')
     print('-------------')
     print('| ' + str(board[1][0]) + ' | ' + str(board[1][1]) + ' | ' + str(board[1][2]) + ' |')
@@ -67,7 +67,7 @@ def print_board(board): # TODO is a local board print needed?
     print('| ' + str(board[2][0]) + ' | ' + str(board[2][1]) + ' | ' + str(board[2][2]) + ' |')
     print('-------------')
 
-def printEntireBoard():
+def printEntireBoard(entire_game_state):
     # TODO refactor via for loop
     # Top 3 games
     print('\n-----------------------------------------')
@@ -120,7 +120,7 @@ global_current_state = "Not Done"
 availableLocalBoards = [i for i in range(9)]
 globalWinner = None
 print("New Game!")
-printEntireBoard()
+printEntireBoard(entire_game_state)
 player_choice = input("Choose which player goes first - X or O: ")
 if player_choice.lower() == 'x':
     current_player_idx = 0
@@ -147,7 +147,7 @@ while global_current_state == "Not Done":
     else:
         localBoard = nextLocalBoard
 
-    printEntireBoard()
+    printEntireBoard(entire_game_state)
     globalWinner, global_current_state = check_current_state(global_game_state)
     if globalWinner is not None:
         print(str(globalWinner) + " won!")
