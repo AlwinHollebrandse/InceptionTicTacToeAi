@@ -27,31 +27,31 @@ def check_current_state(board):
             if board[i][j] is ' ':
                 draw_flag = 1
     if draw_flag is 0:
-        return None, "Draw"
+        return 'Draw'
     
     # Check horizontals
     if (board[0][0] == board[0][1] and board[0][1] == board[0][2] and board[0][0] is not ' '):
-        return board[0][0], "Done"
+        return board[0][0]
     if (board[1][0] == board[1][1] and board[1][1] == board[1][2] and board[1][0] is not ' '):
-        return board[1][0], "Done"
+        return board[1][0]
     if (board[2][0] == board[2][1] and board[2][1] == board[2][2] and board[2][0] is not ' '):
-        return board[2][0], "Done"
+        return board[2][0]
     
     # Check verticals
     if (board[0][0] == board[1][0] and board[1][0] == board[2][0] and board[0][0] is not ' '):
-        return board[0][0], "Done"
+        return board[0][0]
     if (board[0][1] == board[1][1] and board[1][1] == board[2][1] and board[0][1] is not ' '):
-        return board[0][1], "Done"
+        return board[0][1]
     if (board[0][2] == board[1][2] and board[1][2] == board[2][2] and board[0][2] is not ' '):
-        return board[0][2], "Done"
+        return board[0][2]
     
     # Check diagonals
     if (board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[0][0] is not ' '):
-        return board[1][1], "Done"
+        return board[1][1]
     if (board[2][0] == board[1][1] and board[1][1] == board[0][2] and board[2][0] is not ' '):
-        return board[1][1], "Done"
+        return board[1][1]
     
-    return None, "Not Done"
+    return None
 
 def getAvailableLocalMoves(board):
     availableMoves = []
@@ -126,9 +126,8 @@ def printEntireBoard(entire_game_state):
     print('\n\n\n')
 
 # Playing
-global_current_state = "Not Done"
 availableLocalBoards = [i for i in range(9)]
-globalWinner, ai_localBoard, ai_Block_num = None
+globalWinner = ai_localBoard = ai_Block_num = None
 print("New Game!")
 printEntireBoard(entire_game_state)
 player_choice = input("Choose which player goes first - X(human) or O(\"ai\"): ")
@@ -142,16 +141,16 @@ if current_player_idx == 0: # human
 else: # ai
     localBoard = random.choice(availableLocalBoards)
 
-while global_current_state == "Not Done":
-    localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
+while globalWinner == None:
+    localWinner = check_current_state(entire_game_state[localBoard])
     # print_board(entire_game_state[localBoard])
-    while local_current_state != "Not Done":
+    while localWinner is not None:
         if current_player_idx == 0: # human
             localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place in (" + ', '.join(str(x) for x in availableLocalBoards) + "): ")) #TODO why doesnt *availableLocalBoards work?
-            localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
+            localWinner = check_current_state(entire_game_state[localBoard])
         else: # ai
             localBoard = random.choice(availableLocalBoards)
-            localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
+            localWinner = check_current_state(entire_game_state[localBoard])
 
     if current_player_idx == 0: # human
         block_num = int(input(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")) # TODO only show valid moves
@@ -161,8 +160,8 @@ while global_current_state == "Not Done":
         ai_localBoard = localBoard
     
     nextLocalBoard = play_move(players[current_player_idx], entire_game_state[localBoard], block_num)
-    localWinner, local_current_state = check_current_state(entire_game_state[localBoard])
-    if local_current_state != "Not Done":
+    localWinner = check_current_state(entire_game_state[localBoard])
+    if localWinner is not None:
         print("localWinner: " + str(localWinner))
         availableLocalBoards.remove(localBoard)
         fillAllLocalEmptySpaces(entire_game_state[localBoard])
@@ -175,14 +174,15 @@ while global_current_state == "Not Done":
         printEntireBoard(entire_game_state)
         print("ai placed at localBoard: " + str(ai_localBoard) + ", position: " + str(ai_Block_num))
         
-    globalWinner, global_current_state = check_current_state(global_game_state)
-    if globalWinner is not None:
+    globalWinner = check_current_state(global_game_state)
+    if globalWinner == '-':
+        print("Draw!")
+    elif globalWinner is not None:
         print(str(globalWinner) + " won!")
     else:
         current_player_idx = (current_player_idx + 1)%2
     
-    if global_current_state is "Draw":
-        print("Draw!")
+    
 
 # TODO skipped me on turn 1... ai has 2 prints...but one wasnt actauly "there"...its a print bug
 # TODO I got to go twice BUG - could also be print bug. havent seen it again
