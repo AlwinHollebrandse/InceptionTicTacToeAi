@@ -4,6 +4,7 @@
 # TODO BUG RecursionError: maximum recursion depth exceeded in comparison
 # TODO maybe repurpose a python chess bot
 # TODO BUG pruning minimax breaks when theres a local winner found...probably something with picking the new local board
+# https://stackabuse.com/minimax-and-alpha-beta-pruning-in-python/
 
 players = ['X','O']
 
@@ -143,24 +144,24 @@ def max_alpha_beta(entire_game_state, localBoardIndex, alpha, beta):
         bestAIMaxLocalMove = None
 
         result = check_current_state(entire_game_state[localBoard]) # TODO use local or global? ideally, global, but local is easier to start with
-        print('max result: ' + str(result))
+        # print('max result: ' + str(result))
 
         if result == 'X':
-            return (-1, 0, 0)
+            return (-1, 0)
         elif result == 'O':
-            return (1, 0, 0)
+            return (1, 0)
         elif result == '-':
-            return (0, 0, 0)
+            return (0, 0)
 
         for i in range(0, 3): # TODO this only checks local board rn... convert to ultimate
             for j in range(0, 3):
                 if entire_game_state[localBoardIndex][i][j]  == ' ': # self.current_state[i][j] == ' ': # TODO ensure that a filled local Board wont be seen here. ie have to check for '-'
                     # self.current_state[i][j] = 'O'
                     entire_game_state[localBoardIndex][i][j] = 'O'
-                    print('max localBoard: ' + str(localBoardIndex))
-                    (m, bestAIMinLocalMove) = min_alpha_beta(entire_game_state, (i*3 + j), alpha, beta) # TODO what if that next board is done?
-                    if m > maxv:
-                        maxv = m
+                    # print('max localBoard: ' + str(localBoardIndex))
+                    (moveValue, bestAIMinLocalMove) = min_alpha_beta(entire_game_state, (i*3 + j), alpha, beta) # TODO what if that next board is done?
+                    if moveValue > maxv:
+                        maxv = moveValue
                         # px = i # TODO what are px and py
                         # py = j
                         bestAIMaxLocalMove = (i*3 + j)
@@ -169,13 +170,13 @@ def max_alpha_beta(entire_game_state, localBoardIndex, alpha, beta):
 
                     # Next two ifs in Max and Min are the only difference between regular algorithm and minimax
                     if maxv >= beta:
-                        print('max here')
+                        # print('max here')
                         return (maxv, bestAIMaxLocalMove) # px, py)
 
                     if maxv > alpha:
                         alpha = maxv
 
-        print('max2 here')
+        # print('max2 here')
         return (maxv, bestAIMaxLocalMove) # px, py)
 
 
@@ -187,36 +188,36 @@ def min_alpha_beta(entire_game_state, localBoardIndex, alpha, beta):
         bestAIMinLocalMove = None
 
         result = check_current_state(entire_game_state[localBoard]) # TODO use local or global?
-        print('min result: ' + str(result))
+        # print('min result: ' + str(result))
 
         if result == 'X':
-            return (-1, 0, 0)
+            return (-1, 0)
         elif result == 'O':
-            return (1, 0, 0)
+            return (1, 0)
         elif result == '.':
-            return (0, 0, 0)
+            return (0, 0)
 
         for i in range(0, 3):  # TODO this only checks local board rn... convert to ultimate
             for j in range(0, 3):
                 if entire_game_state[localBoardIndex][i][j]  == ' ': # self.current_state[i][j] == ' ': # TODO ensure that a filled local Board wont be seen here. ie have to check for '-'
                     # self.current_state[i][j] = 'X'
                     entire_game_state[localBoardIndex][i][j] = 'X'
-                    print('min localBoard: ' + str(localBoardIndex))
-                    (m, bestAIMaxLocalMove) = max_alpha_beta(entire_game_state, (i*3 + j), alpha, beta)
-                    if m < minv:
-                        minv = m
+                    # print('min localBoard: ' + str(localBoardIndex))
+                    (moveValue, bestAIMaxLocalMove) = max_alpha_beta(entire_game_state, (i*3 + j), alpha, beta)
+                    if moveValue < minv:
+                        minv = moveValue
                         bestAIMinLocalMove = (i*3 + j)
                     # self.current_state[i][j] = '.'
                     entire_game_state[localBoardIndex][i][j] = ' '
 
                     if minv <= alpha:
-                        print('min here')
+                        # print('min here')
                         return (minv, bestAIMinLocalMove)
 
                     if minv < beta:
                         beta = minv
 
-        print('min2 here')
+        # print('min2 here')
         return (minv, bestAIMinLocalMove)
 
 '''
