@@ -144,7 +144,7 @@ else: # ai
 while globalWinner == None:
     localWinner = check_current_state(entire_game_state[localBoard])
     # print_board(entire_game_state[localBoard])
-    while localWinner is not None:
+    while localWinner is not None: # TODO add check to ensure person's value is 0-8 (see minimax)
         if current_player_idx == 0: # human
             localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place in (" + ', '.join(str(x) for x in availableLocalBoards) + "): ")) #TODO why doesnt *availableLocalBoards work?
             localWinner = check_current_state(entire_game_state[localBoard])
@@ -152,7 +152,7 @@ while globalWinner == None:
             localBoard = random.choice(availableLocalBoards)
             localWinner = check_current_state(entire_game_state[localBoard])
 
-    if current_player_idx == 0: # human
+    if current_player_idx == 0: # human # TODO add check to ensure person's value is 0-8 (see minimax)
         block_num = int(input(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")) # TODO only show valid moves
     else: # ai
         block_num = random.choice(getAvailableLocalMoves(entire_game_state[localBoard]))
