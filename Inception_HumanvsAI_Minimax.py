@@ -151,8 +151,15 @@ def printEntireBoard(entire_game_state):
     print('-----------------------------------------')
     print('\n\n\n')
 
-# # TODO right now this uses a heuristc that returns the local board has the most O's in it out of the available boards. This should use the minmax too
-# def findBestLocalBoard(entire_game_state):
+def getInputAsValidNumber(string):
+    humanInput = input(string)
+    try:
+        if int(humanInput) not in range(9):
+            raise Exception()
+    except:
+        print('Please enter a valid number (0-8)')
+        return getInputAsValidNumber(string)
+    return int(humanInput)
 
 
 # NOTE could be combined to a single method, that would be less readable but also less redundant
@@ -299,7 +306,8 @@ def main():
             current_player_idx = 1
             
         if current_player_idx == 0: # human
-            localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place first (0 to 8): "))
+            localBoard = getInputAsValidNumber(str(players[current_player_idx]) + "'s Turn! Choose which local board to place first (0 to 8): ")
+            # localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place first (0 to 8): "))
         else: # ai
             localBoard = 0
 
@@ -307,10 +315,12 @@ def main():
             block_num = None
             localWinner = check_current_state(entire_game_state[localBoard])
             if current_player_idx == 0: # Human's turn
-                while localWinner != None and block_num in range(9):
-                    localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place in"))# TODO (" + ', '.join(str(x) for x in availableLocalBoards) + "): ")) #TODO why doesnt *availableLocalBoards work?
+                while localWinner != None:
+                    localBoard = getInputAsValidNumber(str(players[current_player_idx]) + "'s Turn! Choose which local board to place in")
+                    # localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place in")) # TODO (" + ', '.join(str(x) for x in availableLocalBoards) + "): ")) #TODO why doesnt *availableLocalBoards work?
                     localWinner = check_current_state(entire_game_state[localBoard])
-                block_num = int(input(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")) # TODO only show valid moves
+                # block_num = int(input(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")) # TODO only show valid moves
+                block_num = getInputAsValidNumber(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")
 
             else: # AI's turn
                 # block_num = getBestMove(entire_game_state, global_game_state, localBoard, players[current_player_idx]) # Broken none pruning
