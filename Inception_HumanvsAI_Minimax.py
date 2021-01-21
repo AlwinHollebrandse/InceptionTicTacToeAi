@@ -13,7 +13,7 @@ def play_move(player, localBoard, block_num):
         localBoard[int((block_num)/3)][(block_num)%3] = player
         return block_num
     else:
-        block_num = int(input("Block != empty, ya blockhead! Choose again: "))
+        block_num = int(input('Block != empty, ya blockhead! Choose again: '))
         return play_move(player, localBoard, block_num)
 
 def copy_entire_game_state(entire_game_state): # TODO add one for just global?
@@ -297,17 +297,16 @@ def main():
 
         globalWinner = ai_localBoard = ai_Block_num = None
 
-        print("\nNew Game!")
+        print('\nNew Game!')
         printEntireBoard(entire_game_state)
-        player_choice = input("Choose which player goes first - X(human) or O(MiniMax AI): ")
+        player_choice = input('Choose which player goes first - X(human) or O(MiniMax AI): ')
         if player_choice == 'X' or player_choice == 'x':
             current_player_idx = 0
         else:
             current_player_idx = 1
             
         if current_player_idx == 0: # human
-            localBoard = getInputAsValidNumber(str(players[current_player_idx]) + "'s Turn! Choose which local board to place first (0 to 8): ")
-            # localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place first (0 to 8): "))
+            localBoard = getInputAsValidNumber(str(players[current_player_idx]) + '\'s Turn! Choose which local board to place first (0 to 8): ')
         else: # ai
             localBoard = 0
 
@@ -316,11 +315,9 @@ def main():
             localWinner = check_current_state(entire_game_state[localBoard])
             if current_player_idx == 0: # Human's turn
                 while localWinner != None:
-                    localBoard = getInputAsValidNumber(str(players[current_player_idx]) + "'s Turn! Choose which local board to place in")
-                    # localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place in")) # TODO (" + ', '.join(str(x) for x in availableLocalBoards) + "): ")) #TODO why doesnt *availableLocalBoards work?
+                    localBoard = getInputAsValidNumber(str(players[current_player_idx]) + '\'s Turn! Choose which local board to place in')
                     localWinner = check_current_state(entire_game_state[localBoard])
-                # block_num = int(input(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")) # TODO only show valid moves
-                block_num = getInputAsValidNumber(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")
+                block_num = getInputAsValidNumber(str(players[current_player_idx]) + '\'s Turn! LocalBoard: ' + str(localBoard) + '. Choose where to place (0 to 8): ')
 
             else: # AI's turn
                 # block_num = getBestMove(entire_game_state, global_game_state, localBoard, players[current_player_idx]) # Broken none pruning
@@ -339,7 +336,7 @@ def main():
             nextLocalBoard = play_move(players[current_player_idx], entire_game_state[localBoard], block_num)
             localWinner = check_current_state(entire_game_state[localBoard])
             if localWinner != None:
-                print("localWinner: " + str(localWinner))
+                print('localWinner: ' + str(localWinner))
                 # availableLocalBoards.remove(localBoard) # TODO update all available boards...
                 fillAllLocalEmptySpaces(entire_game_state[localBoard])
                 global_game_state[int((localBoard)/3)][(localBoard)%3] = localWinner
@@ -349,13 +346,13 @@ def main():
 
             if current_player_idx == 1: # ai
                 printEntireBoard(entire_game_state)
-                print("ai placed at localBoard: " + str(ai_localBoard) + ", position: " + str(ai_Block_num)) # TODO bug always prints localboard = 0, and always places at 0? also cant handle picking a new localboard
+                print('ai placed at localBoard: ' + str(ai_localBoard) + ', position: ' + str(ai_Block_num)) # TODO bug always prints localboard = 0, and always places at 0? also cant handle picking a new localboard
                 
             globalWinner = check_current_state(global_game_state)
             if globalWinner == '-':
-                print("Draw!")
+                print('Draw!')
             elif globalWinner != None:
-                print(str(globalWinner) + " won!")
+                print(str(globalWinner) + ' won!')
             else:
                 current_player_idx = (current_player_idx + 1)%2
                 
