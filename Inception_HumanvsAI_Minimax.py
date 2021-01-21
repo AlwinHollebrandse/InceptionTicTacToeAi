@@ -156,8 +156,9 @@ def printEntireBoard(entire_game_state):
 
 
 # NOTE could be combined to a single method, that would be less readable but also less redundant
-def max_alpha_beta(entire_game_state, global_game_state, localBoardIndex, alpha, beta, depth): # TODO limit iterations?-not super feasible. if not end has been reached, all moves willl be equally viable right?...so do random? or just best local move
-    if check_current_state(entire_game_state[localBoardIndex]) == None:
+# TODO dont need global board as aparam
+def max_alpha_beta(entire_game_state, localBoardIndex, alpha, beta, depth): # TODO limit iterations?-not super feasible. if not end has been reached, all moves willl be equally viable right?...so do random? or just best local move
+    if check_current_state(entire_game_state[localBoardIndex]) != None:
         localBoardsToCheck = []
         for i in range(9):
             if check_current_state(entire_game_state[i]) == None:
@@ -166,28 +167,21 @@ def max_alpha_beta(entire_game_state, global_game_state, localBoardIndex, alpha,
     else:
         localBoardsToCheck = [localBoardIndex]
 
-    # print('localBoardsToCheck: ', localBoardsToCheck)
-    
-
+    print('max localBoardsToCheck: ', localBoardsToCheck)
+    if depth >= 5:
+        return (0,0)
     
     maxv = -2
-    # px = None
-    # py = None
     bestAIMaxLocalMove = None
 
     tempLocalWinner = check_current_state(entire_game_state[localBoardIndex])
     if tempLocalWinner in ['X', 'O', '-']:
         fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
-        global_game_state[int((localBoardIndex)/3)][(localBoardIndex)%3] = tempLocalWinner
-        # print('max local winner')
 
-    result = checkEntireBoardState(entire_game_state) # TODO should I be checking just the global board here? if not, why update that board at all?
+    result = checkEntireBoardState(entire_game_state)
 
-    # print('max result: ' + str(result))
     if result in ['X', 'O', '-']:
         print('max global winner, result: ', result, ', localBoardIndex: ', localBoardIndex, ', depth: ', depth)
-        print(global_game_state) # TODO BUG printing this board state is showing that most outcomes are ties....
-    # print('max depth: ', depth)
 
     if result == 'X':
         return (-1, 0)
@@ -199,38 +193,33 @@ def max_alpha_beta(entire_game_state, global_game_state, localBoardIndex, alpha,
     depth += 1
 
     for localBoardIndex in localBoardsToCheck:
-        for i in range(0, 3): # TODO this only checks local board rn... convert to ultimate
+        for i in range(0, 3):
             for j in range(0, 3):
-                if entire_game_state[localBoardIndex][i][j]  == ' ': # self.current_state[i][j] == ' ': # TODO ensure that a filled local Board wont be seen here. ie have to check for '-'
-                    # self.current_state[i][j] = 'O'
+                if entire_game_state[localBoardIndex][i][j]  == ' ':
                     entire_game_state[localBoardIndex][i][j] = 'O'
-                    # print('max localBoard: ' + str(localBoardIndex))
-                    # print('past max')
-                    (moveValue, bestAIMinLocalMove) = min_alpha_beta(entire_game_state=entire_game_state, global_game_state=global_game_state, localBoardIndex=(i*3 + j), alpha=alpha, beta=beta, depth=depth) # TODO what if that next board is done?
+
+                    print('max localBoard: ' + str(localBoardIndex), ', new index: ', (i*3 + j), ', depth: ', depth)
+                    printEntireBoard(entire_game_state)
+
+                    (moveValue, bestAIMinLocalMove) = min_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=(i*3 + j), alpha=alpha, beta=beta, depth=depth) # TODO what if that next board is done?
                     if moveValue > maxv:
                         maxv = moveValue
-                        # px = i # TODO what are px and py
-                        # py = j
                         bestAIMaxLocalMove = (i*3 + j)
-                    # self.current_state[i][j] = ' '
+
                     entire_game_state[localBoardIndex][i][j] = ' '
                     replaceAllUnavailableWithEmptySpaces(entire_game_state[localBoardIndex])
-                    global_game_state[int((localBoardIndex)/3)][(localBoardIndex)%3] = ' '
 
                     # Next two ifs in Max and Min are the only difference between regular algorithm and minimax
                     if maxv >= beta:
-                        # print('max here')
-                        return (maxv, bestAIMaxLocalMove) # px, py)
+                        return (maxv, bestAIMaxLocalMove)
 
                     if maxv > alpha:
                         alpha = maxv
 
-    # print('max2 here: ', maxv)
-    return (maxv, bestAIMaxLocalMove) # px, py)
+    return (maxv, bestAIMaxLocalMove)
 
-
-def min_alpha_beta(entire_game_state, global_game_state, localBoardIndex, alpha, beta, depth):
-    if check_current_state(entire_game_state[localBoardIndex]) == None:
+def min_alpha_beta(entire_game_state, localBoardIndex, alpha, beta, depth):
+    if check_current_state(entire_game_state[localBoardIndex]) != None:
         localBoardsToCheck = []
         for i in range(9):
             if check_current_state(entire_game_state[i]) == None:
@@ -239,34 +228,23 @@ def min_alpha_beta(entire_game_state, global_game_state, localBoardIndex, alpha,
     else:
         localBoardsToCheck = [localBoardIndex]
 
-    # print('localBoardsToCheck: ', localBoardsToCheck)
+    print('min localBoardsToCheck: ', localBoardsToCheck)
+    if depth >= 5: # TODO make a variable depth depending on how many move options you have...ex you dont have to pick a whole new local board as well
+        return (0,0)
 
     minv = 2
 
-    # qx = None
-    # qy = None
     bestAIMinLocalMove = None
 
     tempLocalWinner = check_current_state(entire_game_state[localBoardIndex])
     if tempLocalWinner in ['X', 'O', '-']:
         fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
-        global_game_state[int((localBoardIndex)/3)][(localBoardIndex)%3] = tempLocalWinner
-        # print('min local winner, localBoardIndex: ', localBoardIndex)
 
     result = checkEntireBoardState(entire_game_state)
-    
-    # global_game_state[int((localBoard)/3)][(localBoard)%3] = localWinner
-    # result = check_current_state(global_game_state)
-    # globalWinner = check_current_state(global_game_state) # where -1 is 'X' aka human # TODO
-
-
-    # print('min result: ' + str(result))
     if result in ['X', 'O', '-']:
         print('min global winner, result: ', result, ', localBoardIndex: ', localBoardIndex, ', depth: ', depth)
-        print(global_game_state)
-    # print('min depth: ', depth)
 
-    if result == 'X':
+    if result == 'X': # TODO somehow incoperate that giving the foe local wins is bad
         return (-1, 0)
     elif result == 'O':
         return (1, 0)
@@ -276,30 +254,27 @@ def min_alpha_beta(entire_game_state, global_game_state, localBoardIndex, alpha,
     depth += 1
 
     for localBoardIndex in localBoardsToCheck:
-        for i in range(0, 3):  # TODO this only checks local board rn... convert to ultimate
+        for i in range(0, 3):
             for j in range(0, 3):
-                if entire_game_state[localBoardIndex][i][j]  == ' ': # self.current_state[i][j] == ' ': # TODO ensure that a filled local Board wont be seen here. ie have to check for '-'
-                    # self.current_state[i][j] = 'X'
+                if entire_game_state[localBoardIndex][i][j]  == ' ':
                     entire_game_state[localBoardIndex][i][j] = 'X'
-                    # print('min localBoard: ' + str(localBoardIndex))
-                    (moveValue, bestAIMaxLocalMove) = max_alpha_beta(entire_game_state, global_game_state, (i*3 + j), alpha, beta, depth) # TODO if the local board is full, then the move will be on a different board
-                    # print('past min')
+
+                    print('min localBoard: ' + str(localBoardIndex), ', new index: ', (i*3 + j), ', depth: ', depth)
+                    printEntireBoard(entire_game_state)
+
+                    (moveValue, bestAIMaxLocalMove) = max_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=(i*3 + j), alpha=alpha, beta=beta, depth=depth) # TODO if the local board is full, then the move will be on a different board
                     if moveValue < minv:
                         minv = moveValue
                         bestAIMinLocalMove = (i*3 + j)
-                    # self.current_state[i][j] = '.'
                     entire_game_state[localBoardIndex][i][j] = ' '
                     replaceAllUnavailableWithEmptySpaces(entire_game_state[localBoardIndex])
-                    global_game_state[int((localBoardIndex)/3)][(localBoardIndex)%3] = ' '
 
                     if minv <= alpha:
-                        # print('min here')
                         return (minv, bestAIMinLocalMove)
 
                     if minv < beta:
                         beta = minv
 
-    # print('min2 here: ', minv)
     return (minv, bestAIMinLocalMove)
 
 def main():
@@ -342,7 +317,7 @@ def main():
 
                 # if check_current_state(entire_game_state[localBoard]) != None:
                 #     localBoard = None
-                (m, block_num) = max_alpha_beta(entire_game_state, global_game_state, localBoardIndex=localBoard, alpha=-2, beta=2, depth=0)
+                (m, block_num) = max_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=localBoard, alpha=-2, beta=2, depth=0)
                 # TODO check if the ai is actually limited to current localBoard when possible...
                 ai_Block_num = block_num % 9
                 ai_localBoard = int(block_num / 9) # TODO need to check if this is a valid localBoard
