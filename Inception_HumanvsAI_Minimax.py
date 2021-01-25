@@ -171,6 +171,20 @@ def getInputAsValidNumber(string):
         return getInputAsValidNumber(string)
     return int(humanInput)
 
+def getOpponent(player):
+    if player == 'X':
+        return 'O'
+    return 'X'
+
+def blocksLocalWin(board, player, i, j):
+    opponent = getOpponent(player)
+    board[i][j] = opponent
+    blocked = False
+    if check_current_state(board) == opponent:
+        blocked = True
+    board[i][j] = player
+    return blocked, player
+
 
 # NOTE could be combined to a single method, that would be less readable but also less redundant
 # TODO dont need global board as aparam
@@ -196,9 +210,10 @@ def max_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, difficu
         print('max global winner, result: ', result, ', localBoardIndex: ', localBoardIndex, ', depth: ', depth)
 
     if result == 'X':
-        return (moveValue-9, 0, localBoardPlacedIn)
+        return (moveValue-31, 0, localBoardPlacedIn)
     elif result == 'O':
-        return (moveValue+9, 0, localBoardPlacedIn)
+        print('HERE MAX')
+        return (moveValue+30, 0, localBoardPlacedIn)
     elif result == '-':
         return (moveValue, 0, localBoardPlacedIn)
 
@@ -224,11 +239,15 @@ def max_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, difficu
                         # printEntireBoard(entire_game_state)
                     if difficulty >= 2:
                         if tempLocalWinner == 'X':
-                            tempMoveValue -= 1
+                            tempMoveValue -= 2
                         elif tempLocalWinner == 'O':
+                            tempMoveValue += 2
+                    if difficulty >= 2 and tempLocalWinner == None: # TODO reward for blocking a localWin
+                        (blocked, player) = blocksLocalWin(entire_game_state[localBoardIndex], 'O', i, j)
+                        if blocked and player == 'X':
+                            tempMoveValue -= 1
+                        elif blocked and player == 'O':
                             tempMoveValue += 1
-                    if difficulty >= 2: # TODO reward for blocking a localWin
-                        tempMoveValue += 0
                     if difficulty >= 3: # TODO also reward geeting 1 away from a win, but less than a local win and punish for letting the human get 2 in a winning row
                         tempMoveValue += 0
 
@@ -276,10 +295,11 @@ def min_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, difficu
     if result in ['X', 'O', '-']:
         print('min global winner, result: ', result, ', localBoardIndex: ', localBoardIndex, ', depth: ', depth)
 
-    if result == 'X': # TODO somehow incoperate that giving the foe local wins is bad
-        return (moveValue-9, 0, localBoardPlacedIn)
+    if result == 'X':
+        print('HERE MIN')
+        return (moveValue-31, 0, localBoardPlacedIn)
     elif result == 'O':
-        return (moveValue+9, 0, localBoardPlacedIn)
+        return (moveValue+30, 0, localBoardPlacedIn)
     elif result == '.':
         return (moveValue, 0, localBoardPlacedIn)
 
@@ -297,6 +317,9 @@ def min_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, difficu
 
                     print('min X placed at localBoardIndex: ' + str(localBoardIndex), ', location: ', (i*3 + j), ', depth: ', depth)
 
+
+
+                    # TODO if the ai is gloablly ahead, reward wining local boards more, and the oppoiste if behind
                     tempMoveValue = moveValue
                     tempLocalWinner = check_current_state(entire_game_state[localBoardIndex])
                     if tempLocalWinner in ['X', 'O', '-']:
@@ -309,9 +332,14 @@ def min_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, difficu
                         elif tempLocalWinner == 'O':
                             tempMoveValue += 1
                     if difficulty >= 2: # TODO reward for blocking a localWin
-                        tempMoveValue += 0
+                        (blocked, player) = blocksLocalWin(entire_game_state[localBoardIndex], 'X', i, j)
+                        if blocked and player == 'X':
+                            tempMoveValue -= 1
+                        elif blocked and player == 'O':
+                            tempMoveValue += 1
                     if difficulty >= 3: # TODO also reward geeting 1 away from a win, but less than a local win and punish for letting the human get 2 in a winning row
                         tempMoveValue += 0
+                    # TODO add punishment for letting foe go in a board where they have the advantage?
 
                     # printEntireBoard(entire_game_state)
 
@@ -342,9 +370,13 @@ def main():
                             [' ',' ',' '],
                             [' ',' ',' ']]
 
-        entire_game_state = [[[' ',' ',' '],[' ','X',' '],['X',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [['X',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
-                            [[' ',' ',' '],['O',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
-                            [[' ',' ','O'],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
+        # entire_game_state = [[[' ',' ',' '],[' ','X',' '],['X',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [['X',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
+        #                     [[' ',' ',' '],['O',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
+        #                     [[' ',' ','O'],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
+
+        entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
+                            [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
+                            [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
 
         globalWinner = None
 
@@ -421,12 +453,72 @@ if __name__ == '__main__':
 
 
 
+# BUG TODO 
+# printed this , ntice the ' ' in the finished one
+
+# |   |   | O |||   |   |   ||| O | O | O |
+# -----------------------------------------
+# |   |   |   |||   |   |   ||| - |   | - |
+# -----------------------------------------
+# |   |   |   |||   |   |   ||| - | - | - |
+# -----------------------------------------
+
+# -----------------------------------------
+# |   |   |   |||   |   |   ||| O |   |   |
+# -----------------------------------------
+# |   |   |   ||| X |   | X |||   |   |   |
+# -----------------------------------------
+# | X |   | X |||   |   |   ||| X | X |   |
+# -----------------------------------------
+# -----------------------------------------
+# |   |   | O |||   |   | X |||   | O |   |
+# -----------------------------------------
+# | X | O |   |||   |   |   |||   |   |   |
+# -----------------------------------------
+# |   |   |   |||   |   | X |||   |   |   |
+# -----------------------------------------
+# -----------------------------------------
+# | O |   | O |||   |   |   |||   | O | O |
+# -----------------------------------------
+# |   |   |   ||| O |   |   |||   |   |   |
+# -----------------------------------------
+# |   |   |   |||   |   |   |||   |   |   |
+# -----------------------------------------
+
+
+
+# human went 2,8
+# ai placed at localBoardIndex: 8, position: 2
 
 
 
 
+# ----------------------------------------
+# | - | - | - |||   |   |   ||| O | - | - |
+# -----------------------------------------
+# | - | - | - ||| X |   | X ||| - | - | - |
+# -----------------------------------------
+# | X | X | X |||   |   |   ||| X | X | X |
+# -----------------------------------------
+# -----------------------------------------
+# |   |   | O |||   |   | X |||   | O |   |
+# -----------------------------------------
+# | X | O |   |||   |   |   |||   |   |   |
+# -----------------------------------------
+# |   |   |   |||   |   | X ||| X |   |   |
+# -----------------------------------------
+# -----------------------------------------
+# | O | O | O |||   |   |   ||| O | O | O |
+# -----------------------------------------
+# | - | - | - ||| O |   | O ||| - | - | - |
+# -----------------------------------------
+# | - | - | - |||   |   |   ||| - | - | - |
+# -----------------------------------------
 
 
+
+#human went 5,6
+# ai placed at localBoardIndex: 6, position: 1
 
 
 
