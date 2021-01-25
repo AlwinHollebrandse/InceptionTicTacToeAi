@@ -4,7 +4,7 @@
 # TODO maybe repurpose a python chess bot
 # https://stackabuse.com/minimax-and-alpha-beta-pruning-in-python/
 
-players = ['X','O']
+PLAYERS = ['X','O']
 MAXDEPTH = 5
 # TODO set alpha = minV and best=maxV
 
@@ -174,7 +174,7 @@ def getInputAsValidNumber(string):
 
 # NOTE could be combined to a single method, that would be less readable but also less redundant
 # TODO dont need global board as aparam
-def max_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, alpha, beta): # TODO limit iterations?-not super feasible. if not end has been reached, all moves willl be equally viable right?...so do random? or just best local move
+def max_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, difficulty, alpha, beta): # TODO limit iterations?-not super feasible. if not end has been reached, all moves willl be equally viable right?...so do random? or just best local move
     print('init max localBoardIndex: ' + str(localBoardIndex), ', moveValue: ', moveValue, ', depth: ', depth)
     localBoardPlacedIn = getFirstAvailableBoard(entire_game_state)
     if check_current_state(entire_game_state[localBoardIndex]) != None:
@@ -222,14 +222,19 @@ def max_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, alpha, 
                         fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
                         # print('MAX HERE')
                         # printEntireBoard(entire_game_state)
-                    if tempLocalWinner == 'X':
-                        tempMoveValue -= 1
-                    elif tempLocalWinner == 'O':
-                        tempMoveValue += 1
+                    if difficulty >= 2:
+                        if tempLocalWinner == 'X':
+                            tempMoveValue -= 1
+                        elif tempLocalWinner == 'O':
+                            tempMoveValue += 1
+                    if difficulty >= 2: # TODO reward for blocking a localWin
+                        tempMoveValue += 0
+                    if difficulty >= 3: # TODO also reward geeting 1 away from a win, but less than a local win and punish for letting the human get 2 in a winning row
+                        tempMoveValue += 0
 
                     # printEntireBoard(entire_game_state)
 
-                    (resultMoveValue, bestAIMinLocalMove, bestAIMinLocalBoard) = min_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=(i*3 + j), moveValue=tempMoveValue, depth=depth, alpha=alpha, beta=beta)
+                    (resultMoveValue, bestAIMinLocalMove, bestAIMinLocalBoard) = min_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=(i*3 + j), moveValue=tempMoveValue, depth=depth, difficulty=difficulty, alpha=alpha, beta=beta)
                     if resultMoveValue > maxv:
                         # print('HERE MAX')
                         maxv = resultMoveValue
@@ -250,7 +255,7 @@ def max_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, alpha, 
     print('max returning maxv:',maxv)
     return (maxv, bestAIMaxLocalMove, localBoardPlacedIn)
 
-def min_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, alpha, beta):
+def min_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, difficulty, alpha, beta):
     print('init min localBoardIndex: ' + str(localBoardIndex), ', moveValue: ', moveValue, ', depth: ', depth)
     localBoardPlacedIn = getFirstAvailableBoard(entire_game_state)
     if check_current_state(entire_game_state[localBoardIndex]) != None:
@@ -298,14 +303,19 @@ def min_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, alpha, 
                         fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
                         # print('MIN HERE')
                         # printEntireBoard(entire_game_state)
-                    if tempLocalWinner == 'X': # TODO also reward geeting 1 away from a win, but less than a local win and punish for letting the human get 2 in a winning row
-                        tempMoveValue -= 1
-                    elif tempLocalWinner == 'O':
-                        tempMoveValue += 1
+                    if difficulty >= 1:
+                        if tempLocalWinner == 'X':
+                            tempMoveValue -= 1
+                        elif tempLocalWinner == 'O':
+                            tempMoveValue += 1
+                    if difficulty >= 2: # TODO reward for blocking a localWin
+                        tempMoveValue += 0
+                    if difficulty >= 3: # TODO also reward geeting 1 away from a win, but less than a local win and punish for letting the human get 2 in a winning row
+                        tempMoveValue += 0
 
                     # printEntireBoard(entire_game_state)
 
-                    (resultMoveValue, bestAIMaxLocalMove, bestAIMaxLocalBoard) = max_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=(i*3 + j), moveValue=tempMoveValue, depth=depth, alpha=alpha, beta=beta)
+                    (resultMoveValue, bestAIMaxLocalMove, bestAIMaxLocalBoard) = max_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=(i*3 + j), moveValue=tempMoveValue, depth=depth, difficulty=difficulty, alpha=alpha, beta=beta)
                     if resultMoveValue < minv:
                         # print('HERE MIN')
                         minv = resultMoveValue
@@ -326,6 +336,7 @@ def min_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, alpha, 
 
 def main():
     play_again = 'Y'
+    difficulty = 3
     while play_again.lower() == 'y':
         global_game_state = [[' ',' ',' '],
                             [' ',' ',' '],
@@ -346,7 +357,7 @@ def main():
             current_player_idx = 1
             
         if current_player_idx == 0: # human
-            localBoardIndex = getInputAsValidNumber(str(players[current_player_idx]) + '\'s Turn! Choose which local board to place first (0 to 8): ')
+            localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Choose which local board to place first (0 to 8): ')
         else: # ai
             localBoardIndex = 0
 
@@ -355,16 +366,16 @@ def main():
             localWinner = check_current_state(entire_game_state[localBoardIndex])
             if current_player_idx == 0: # Human's turn
                 while localWinner != None:
-                    localBoardIndex = getInputAsValidNumber(str(players[current_player_idx]) + '\'s Turn! Local board ' + str(localBoardIndex) + ' was unavailable. Choose which local board to place in: ')
+                    localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Local board ' + str(localBoardIndex) + ' was unavailable. Choose which local board to place in: ')
                     localWinner = check_current_state(entire_game_state[localBoardIndex])
-                block_num = getInputAsValidNumber(str(players[current_player_idx]) + '\'s Turn! localBoardIndex: ' + str(localBoardIndex) + '. Choose where to place (0 to 8): ')
+                block_num = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! localBoardIndex: ' + str(localBoardIndex) + '. Choose where to place (0 to 8): ')
 
             else: # AI's turn
-                # block_num = getBestMove(entire_game_state, global_game_state, localBoardIndex, players[current_player_idx]) # Broken none pruning
+                # block_num = getBestMove(entire_game_state, global_game_state, localBoardIndex, PLAYERS[current_player_idx]) # Broken none pruning
 
                 # if check_current_state(entire_game_state[localBoardIndex]) != None:
                 #     localBoardIndex = None
-                (m, block_num, localBoardIndex) = max_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=localBoardIndex, moveValue=0, depth=0, alpha=-100, beta=100)
+                (m, block_num, localBoardIndex) = max_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=localBoardIndex, moveValue=0, depth=0, difficulty=difficulty, alpha=-100, beta=100)
                 # TODO check if the ai is actually limited to current localBoardIndex when possible...
                 # ai_Block_num = block_num # TODO is the %9 needed?
                 # ai_localBoard = int(block_num / 9) # TODO need to check if this is a valid localBoardIndex
@@ -374,7 +385,7 @@ def main():
                 print('m: ', m, ', ai_Block_num: ', block_num, ', ai_localBoard: ', localBoardIndex)
 
             print('current_player_idx: ' , current_player_idx, ', localBoardIndex: ', localBoardIndex) # TODO BUG current bug is that the ai always returns 0
-            nextLocalBoard = play_move(players[current_player_idx], entire_game_state[localBoardIndex], block_num)
+            nextLocalBoard = play_move(PLAYERS[current_player_idx], entire_game_state[localBoardIndex], block_num)
             localWinner = check_current_state(entire_game_state[localBoardIndex])
             if localWinner != None:
                 print('localWinner: ' + str(localWinner))
