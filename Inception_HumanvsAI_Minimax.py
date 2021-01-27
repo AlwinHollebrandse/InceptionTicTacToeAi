@@ -5,12 +5,12 @@
 # https://stackabuse.com/minimax-and-alpha-beta-pruning-in-python/
 
 PLAYERS = ['X','O']
-MAXDEPTH = 5
+MAXDEPTH = 2
 # TODO set alpha = minV and best=maxV
 
 def play_move(player, localBoardIndex, block_num):
-    if localBoardIndex[int((block_num)/3)][(block_num)%3] == ' ':
-        localBoardIndex[int((block_num)/3)][(block_num)%3] = player
+    if localBoardIndex[int(block_num/3)][block_num%3] == ' ':
+        localBoardIndex[int(block_num/3)][block_num%3] = player
         return block_num
     else:
         block_num = int(input('Block != empty, ya blockhead! Choose again: '))
@@ -33,39 +33,40 @@ def copy_global_game_state(board): # TODO keep?
         for j in range(3):
             new_global_game[i][j] = board[i][j]
     return new_global_game
-    
-def check_current_state(board):
-    # Check if draw
-    draw_flag = 0
-    for i in range(3):
-        for j in range(3):
-            if board[i][j] == ' ':
-                draw_flag = 1
-    if draw_flag == 0:
-        return '-'
-    
+
+def check_current_state(board):    
     # Check horizontals
-    if (board[0][0] == board[0][1] and board[0][1] == board[0][2] and board[0][0] != ' '):
+    if (board[0][0] == board[0][1] and board[0][1] == board[0][2] and board[0][0] in ['X', 'O']):
         return board[0][0]
-    if (board[1][0] == board[1][1] and board[1][1] == board[1][2] and board[1][0] != ' '):
+    if (board[1][0] == board[1][1] and board[1][1] == board[1][2] and board[1][0] in ['X', 'O']):
         return board[1][0]
-    if (board[2][0] == board[2][1] and board[2][1] == board[2][2] and board[2][0] != ' '):
+    if (board[2][0] == board[2][1] and board[2][1] == board[2][2] and board[2][0] in ['X', 'O']):
         return board[2][0]
     
     # Check verticals
-    if (board[0][0] == board[1][0] and board[1][0] == board[2][0] and board[0][0] != ' '):
+    if (board[0][0] == board[1][0] and board[1][0] == board[2][0] and board[0][0] in ['X', 'O']):
         return board[0][0]
-    if (board[0][1] == board[1][1] and board[1][1] == board[2][1] and board[0][1] != ' '):
+    if (board[0][1] == board[1][1] and board[1][1] == board[2][1] and board[0][1] in ['X', 'O']):
         return board[0][1]
-    if (board[0][2] == board[1][2] and board[1][2] == board[2][2] and board[0][2] != ' '):
+    if (board[0][2] == board[1][2] and board[1][2] == board[2][2] and board[0][2] in ['X', 'O']):
         return board[0][2]
     
     # Check diagonals
-    if (board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[0][0] != ' '):
+    if (board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[0][0] in ['X', 'O']):
         return board[1][1]
-    if (board[2][0] == board[1][1] and board[1][1] == board[0][2] and board[2][0] != ' '):
+    if (board[2][0] == board[1][1] and board[1][1] == board[0][2] and board[2][0] in ['X', 'O']):
         return board[1][1]
     
+    # Check if draw
+    isDraw = True
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == ' ':
+                isDraw = False
+                break
+    if isDraw:
+        return '-'
+
     return None
 
 def checkEntireBoardState(entire_game_state):
@@ -77,10 +78,10 @@ def checkEntireBoardState(entire_game_state):
     for i in range(9):
         localWinner = check_current_state(entire_game_state[i])
         if localWinner != None:
-            temp_global_game_state[int((i)/3)][(i)%3] = localWinner
+            temp_global_game_state[int(i/3)][i%3] = localWinner
 
     # print('temp_global_game_state:')
-    # print_board(temp_global_game_state)
+    print_board(temp_global_game_state)
     return check_current_state(temp_global_game_state)
 
 def getFirstAvailableBoard(entire_game_state):
@@ -327,10 +328,15 @@ def min_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, difficu
                         # print('MIN HERE')
                         # printEntireBoard(entire_game_state)
                     if difficulty >= 1:
+                        scoreChange = 1
+                        # if localBoardIndex in [0,2,6,8]: # in corner board
+                        #     scoreChange += .5
+                        # elif localBoardIndex in [4]: # in center board
+                        #     scoreChange += 1
                         if tempLocalWinner == 'X':
-                            tempMoveValue -= 1
+                            tempMoveValue -= scoreChange
                         elif tempLocalWinner == 'O':
-                            tempMoveValue += 1
+                            tempMoveValue += scoreChange
                     if difficulty >= 2: # TODO reward for blocking a localWin
                         (blocked, player) = blocksLocalWin(entire_game_state[localBoardIndex], 'X', i, j)
                         if blocked and player == 'X':
@@ -370,13 +376,17 @@ def main():
                             [' ',' ',' '],
                             [' ',' ',' ']]
 
+        entire_game_state = [[['-','-','-'],['-','-','-'],['X','X','X']], [[' ',' ',' '],['X',' ','X'],[' ',' ',' ']], [['O','-','-'],['-','-','-'],['X','X','X']], 
+                            [[' ',' ','O'],['X','O',' '],[' ',' ',' ']], [[' ',' ','X'],[' ',' ',' '],[' ',' ','X']], [[' ','O',' '],[' ',' ',' '],[' ',' ',' ']],
+                            [['O',' ','O'],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],['O',' ','O'],[' ',' ',' ']], [['O','O','O'],['-','-','-'],['-','-','-']]]
+
         # entire_game_state = [[[' ',' ',' '],[' ','X',' '],['X',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [['X',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
         #                     [[' ',' ',' '],['O',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
         #                     [[' ',' ','O'],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
 
-        entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
-                            [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
-                            [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
+        # entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
+        #                     [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
+        #                     [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
 
         globalWinner = None
 
@@ -423,7 +433,7 @@ def main():
                 print('localWinner: ' + str(localWinner))
                 # availableLocalBoards.remove(localBoardIndex) # TODO update all available boards...
                 fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
-                global_game_state[int((localBoardIndex)/3)][(localBoardIndex)%3] = localWinner
+                global_game_state[int(localBoardIndex/3)][localBoardIndex%3] = localWinner
                 print_board(global_game_state)
 
             if current_player_idx == 1: # ai
@@ -454,7 +464,7 @@ if __name__ == '__main__':
 
 
 # BUG TODO 
-# printed this , ntice the ' ' in the finished one
+# printed this , notice the ' ' in the finished one
 
 # |   |   | O |||   |   |   ||| O | O | O |
 # -----------------------------------------
@@ -545,7 +555,7 @@ def getBestMove(entire_game_state, global_game_state, localBoardIndex, player):
     # if the given local board is alreday completed, check all global moves
     if localWinner != None:
         for currentLocalBoard in range(9):
-            if global_game_state[int((currentLocalBoard)/3)][(currentLocalBoard)%3] == ' ':
+            if global_game_state[int(currentLocalBoard/3)][currentLocalBoard%3] == ' ':
                 for i in range(3):
                     for j in range(3):
                         if entire_game_state[currentLocalBoard][i][j] == ' ':
