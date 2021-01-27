@@ -5,7 +5,7 @@
 # https://stackabuse.com/minimax-and-alpha-beta-pruning-in-python/
 
 PLAYERS = ['X','O']
-MAXDEPTH = 2
+MAXDEPTH = 5
 # TODO set alpha = minV and best=maxV
 
 def play_move(player, localBoardIndex, block_num):
@@ -81,7 +81,7 @@ def checkEntireBoardState(entire_game_state):
             temp_global_game_state[int(i/3)][i%3] = localWinner
 
     # print('temp_global_game_state:')
-    print_board(temp_global_game_state)
+    # print_board(temp_global_game_state)
     return check_current_state(temp_global_game_state)
 
 def getFirstAvailableBoard(entire_game_state):
@@ -186,6 +186,19 @@ def blocksLocalWin(board, player, i, j):
     board[i][j] = player
     return blocked, player
 
+def blocksGlobalWin(entire_game_state, player, localBoardIndex):
+    temp_global_game_state = [[' ',' ',' '],
+                         [' ',' ',' '],
+                         [' ',' ',' ']]
+    for i in range(9):
+        localWinner = check_current_state(entire_game_state[i])
+        if localWinner != None:
+            temp_global_game_state[int(i/3)][i%3] = localWinner
+
+    # print('temp_global_game_state:')
+    # print_board(temp_global_game_state)
+    return blocksLocalWin(temp_global_game_state, player, int(localBoardIndex/3), localBoardIndex%3)
+
 
 # NOTE could be combined to a single method, that would be less readable but also less redundant
 # TODO dont need global board as aparam
@@ -239,17 +252,28 @@ def max_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, difficu
                         # print('MAX HERE')
                         # printEntireBoard(entire_game_state)
                     if difficulty >= 2:
+                        scoreChange = 2
+                        if localBoardIndex in [0,2,6,8]: # in corner board
+                            scoreChange += .5
+                        elif localBoardIndex in [4]: # in center board
+                            scoreChange += 1
                         if tempLocalWinner == 'X':
-                            tempMoveValue -= 2
+                            tempMoveValue -= scoreChange
                         elif tempLocalWinner == 'O':
-                            tempMoveValue += 2
-                    if difficulty >= 2 and tempLocalWinner == None: # TODO reward for blocking a localWin
+                            tempMoveValue += scoreChange
+                    if difficulty >= 2 and tempLocalWinner == None: # TODO do the same but for global moves
                         (blocked, player) = blocksLocalWin(entire_game_state[localBoardIndex], 'O', i, j)
                         if blocked and player == 'X':
                             tempMoveValue -= 1
                         elif blocked and player == 'O':
                             tempMoveValue += 1
-                    if difficulty >= 3: # TODO also reward geeting 1 away from a win, but less than a local win and punish for letting the human get 2 in a winning row
+                    if difficulty >= 3: # TODO do the same but for global moves # TODO also add reward for getting 1 away from a win
+                        (blocked, player) = blocksGlobalWin(entire_game_state, 'O', localBoardIndex)
+                        if blocked and player == 'X':
+                            tempMoveValue -= 1
+                        elif blocked and player == 'O':
+                            tempMoveValue += 1  
+                    if difficulty >= 4: # TODO also reward geeting 1 away from a win, but less than a local win and punish for letting the human get 2 in a winning row
                         tempMoveValue += 0
 
                     # printEntireBoard(entire_game_state)
@@ -328,22 +352,28 @@ def min_alpha_beta(entire_game_state, localBoardIndex, moveValue, depth, difficu
                         # print('MIN HERE')
                         # printEntireBoard(entire_game_state)
                     if difficulty >= 1:
-                        scoreChange = 1
-                        # if localBoardIndex in [0,2,6,8]: # in corner board
-                        #     scoreChange += .5
-                        # elif localBoardIndex in [4]: # in center board
-                        #     scoreChange += 1
+                        scoreChange = 2
+                        if localBoardIndex in [0,2,6,8]: # in corner board
+                            scoreChange += .5
+                        elif localBoardIndex in [4]: # in center board
+                            scoreChange += 1
                         if tempLocalWinner == 'X':
                             tempMoveValue -= scoreChange
                         elif tempLocalWinner == 'O':
                             tempMoveValue += scoreChange
-                    if difficulty >= 2: # TODO reward for blocking a localWin
+                    if difficulty >= 2:# TODO also add reward for getting 1 away from a win
                         (blocked, player) = blocksLocalWin(entire_game_state[localBoardIndex], 'X', i, j)
                         if blocked and player == 'X':
                             tempMoveValue -= 1
                         elif blocked and player == 'O':
                             tempMoveValue += 1
-                    if difficulty >= 3: # TODO also reward geeting 1 away from a win, but less than a local win and punish for letting the human get 2 in a winning row
+                    if difficulty >= 3: # TODO do the same but for global moves # TODO also add reward for getting 1 away from a win
+                        (blocked, player) = blocksGlobalWin(entire_game_state, 'X', localBoardIndex)
+                        if blocked and player == 'X':
+                            tempMoveValue -= 1
+                        elif blocked and player == 'O':
+                            tempMoveValue += 1  
+                    if difficulty >= 4: # TODO also reward geeting 1 away from a win, but less than a local win and punish for letting the human get 2 in a winning row
                         tempMoveValue += 0
                     # TODO add punishment for letting foe go in a board where they have the advantage?
 
@@ -376,17 +406,21 @@ def main():
                             [' ',' ',' '],
                             [' ',' ',' ']]
 
-        entire_game_state = [[['-','-','-'],['-','-','-'],['X','X','X']], [[' ',' ',' '],['X',' ','X'],[' ',' ',' ']], [['O','-','-'],['-','-','-'],['X','X','X']], 
-                            [[' ',' ','O'],['X','O',' '],[' ',' ',' ']], [[' ',' ','X'],[' ',' ',' '],[' ',' ','X']], [[' ','O',' '],[' ',' ',' '],[' ',' ',' ']],
-                            [['O',' ','O'],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],['O',' ','O'],[' ',' ',' ']], [['O','O','O'],['-','-','-'],['-','-','-']]]
+        # entire_game_state = [[[' ',' ',' '],[' ',' ',' '],['X',' ','X']], [[' ',' ',' '],['X',' ','X'],[' ',' ',' ']], [['O',' ',' '],[' ',' ',' '],['X','X',' ']], 
+        #                     [[' ',' ','O'],['X','O',' '],[' ',' ',' ']], [[' ',' ','X'],[' ',' ',' '],[' ',' ','X']], [[' ','O',' '],[' ',' ',' '],[' ',' ',' ']],
+        #                     [['O',' ','O'],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],['O',' ',' '],[' ',' ',' ']], [[' ','O','O'],[' ',' ',' '],[' ',' ',' ']]]
+
+        # entire_game_state = [[['-','-','-'],['-','-','-'],['X','X','X']], [[' ',' ',' '],['X',' ','X'],[' ',' ',' ']], [['O','-','-'],['-','-','-'],['X','X','X']], 
+        #                     [[' ',' ','O'],['X','O',' '],[' ',' ',' ']], [[' ',' ','X'],[' ',' ',' '],[' ',' ','X']], [[' ','O',' '],[' ',' ',' '],[' ',' ',' ']],
+        #                     [['O',' ','O'],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],['O',' ','O'],[' ',' ',' ']], [['O','O','O'],['-','-','-'],['-','-','-']]]
 
         # entire_game_state = [[[' ',' ',' '],[' ','X',' '],['X',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [['X',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
         #                     [[' ',' ',' '],['O',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
         #                     [[' ',' ','O'],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
 
-        # entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
-        #                     [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
-        #                     [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
+        entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
+                            [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
+                            [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
 
         globalWinner = None
 
@@ -500,35 +534,6 @@ if __name__ == '__main__':
 # human went 2,8
 # ai placed at localBoardIndex: 8, position: 2
 
-
-
-
-# ----------------------------------------
-# | - | - | - |||   |   |   ||| O | - | - |
-# -----------------------------------------
-# | - | - | - ||| X |   | X ||| - | - | - |
-# -----------------------------------------
-# | X | X | X |||   |   |   ||| X | X | X |
-# -----------------------------------------
-# -----------------------------------------
-# |   |   | O |||   |   | X |||   | O |   |
-# -----------------------------------------
-# | X | O |   |||   |   |   |||   |   |   |
-# -----------------------------------------
-# |   |   |   |||   |   | X ||| X |   |   |
-# -----------------------------------------
-# -----------------------------------------
-# | O | O | O |||   |   |   ||| O | O | O |
-# -----------------------------------------
-# | - | - | - ||| O |   | O ||| - | - | - |
-# -----------------------------------------
-# | - | - | - |||   |   |   ||| - | - | - |
-# -----------------------------------------
-
-
-
-#human went 5,6
-# ai placed at localBoardIndex: 6, position: 1
 
 
 
