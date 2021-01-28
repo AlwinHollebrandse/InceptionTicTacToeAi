@@ -1,20 +1,17 @@
 # import numpy as np # TODO set up virtual env and pipenv-once there are dependencies
-# TODO rename block_num to position?
-# TODO BUG RecursionError: maximum recursion depth exceeded in comparison
-# TODO maybe repurpose a python chess bot
 # https://stackabuse.com/minimax-and-alpha-beta-pruning-in-python/
 
 PLAYERS = ['X','O']
 MAXDEPTH = 2
 # TODO set alpha = minMoveValue and best=maxMoveValue
 
-def play_move(player, localBoardIndex, block_num):
-    if localBoardIndex[int(block_num/3)][block_num%3] == ' ':
-        localBoardIndex[int(block_num/3)][block_num%3] = player
-        return block_num
+def play_move(player, localBoardIndex, position):
+    if localBoardIndex[int(position/3)][position%3] == ' ':
+        localBoardIndex[int(position/3)][position%3] = player
+        return position
     else:
-        block_num = int(input('Block != empty, ya blockhead! Choose again: '))
-        return play_move(player, localBoardIndex, block_num)
+        position = int(input('Block != empty, ya blockhead! Choose again: '))
+        return play_move(player, localBoardIndex, position)
 
 def copy_entire_game_state(entire_game_state): # TODO add one for just global? TODO delte method when removing other minimax code
     new_entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
@@ -195,8 +192,6 @@ def blocksGlobalWin(entire_game_state, player, localBoardIndex):
         if localWinner != None:
             temp_global_game_state[int(i/3)][i%3] = localWinner
 
-    # print('temp_global_game_state:')
-    # print_board(temp_global_game_state)
     return blocksLocalWin(temp_global_game_state, player, int(localBoardIndex/3), localBoardIndex%3)
 
 def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, depth, difficulty, alpha, beta): # TODO limit iterations?-not super feasible. if not end has been reached, all moves willl be equally viable right?...so do random? or just best local move
@@ -215,8 +210,6 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, depth, d
     maxMoveValue = -100 # TODO combine into 1 var if possible
     minMoveValue = 100
 
-    # bestAIMaxLocalMove = None # TODO combine into 1 var if possible
-    # bestAIMinLocalMove = None
     bestAILocalMove = None # TODO BUG could technically return None and break
 
     result = checkEntireBoardState(entire_game_state)
@@ -224,7 +217,7 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, depth, d
     if result in ['X', 'O', '-']:
         print(player, ', global winner, result: ', result, ', localBoardIndex: ', localBoardIndex, ', depth: ', depth)
 
-    if result == 'X': # TODO refactor these returns. the min/max are duplicates
+    if result == 'X':
         return (moveValue-31, 0, localBoardPlacedIn)
     elif result == 'O':
         return (moveValue+30, 0, localBoardPlacedIn)
@@ -310,12 +303,12 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, depth, d
                         # if minMoveValue < beta:
                         #     beta = minMoveValue
    
-    print(player, 'RETURN FINAL maxMoveValue:', maxMoveValue, 'minMoveValue:', minMoveValue, 'bestAILocalMove:',bestAILocalMove, 'depth:',depth)
+    # print(player, 'RETURN FINAL maxMoveValue:', maxMoveValue, 'minMoveValue:', minMoveValue, 'bestAILocalMove:',bestAILocalMove, 'depth:',depth)
     if player == 'O': # ai's optimal move value
-        print(player, 'RETURN maxMoveValue:', maxMoveValue, 'bestAILocalMove:',bestAILocalMove, 'depth:',depth)
+        # print(player, 'RETURN maxMoveValue:', maxMoveValue, 'bestAILocalMove:',bestAILocalMove, 'depth:',depth)
         return (maxMoveValue, bestAILocalMove, localBoardPlacedIn)
     else: # human's optimal move value
-        print(player, 'RETURN minMoveValue:', minMoveValue, 'bestAILocalMove:',bestAILocalMove, 'depth:',depth)
+        # print(player, 'RETURN minMoveValue:', minMoveValue, 'bestAILocalMove:',bestAILocalMove, 'depth:',depth)
         return (minMoveValue, bestAILocalMove, localBoardPlacedIn)
 
 def main():
@@ -325,18 +318,6 @@ def main():
         global_game_state = [[' ',' ',' '],
                             [' ',' ',' '],
                             [' ',' ',' ']]
-
-        # entire_game_state = [[[' ',' ',' '],[' ',' ',' '],['X',' ','X']], [[' ',' ',' '],['X',' ','X'],[' ',' ',' ']], [['O',' ',' '],[' ',' ',' '],['X','X',' ']], 
-        #                     [[' ',' ','O'],['X','O',' '],[' ',' ',' ']], [[' ',' ','X'],[' ',' ',' '],[' ',' ','X']], [[' ','O',' '],[' ',' ',' '],[' ',' ',' ']],
-        #                     [['O',' ','O'],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],['O',' ',' '],[' ',' ',' ']], [[' ','O','O'],[' ',' ',' '],[' ',' ',' ']]]
-
-        # entire_game_state = [[['-','-','-'],['-','-','-'],['X','X','X']], [[' ',' ',' '],['X',' ','X'],[' ',' ',' ']], [['O','-','-'],['-','-','-'],['X','X','X']], 
-        #                     [[' ',' ','O'],['X','O',' '],[' ',' ',' ']], [[' ',' ','X'],[' ',' ',' '],[' ',' ','X']], [[' ','O',' '],[' ',' ',' '],[' ',' ',' ']],
-        #                     [['O',' ','O'],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],['O',' ','O'],[' ',' ',' ']], [['O','O','O'],['-','-','-'],['-','-','-']]]
-
-        # entire_game_state = [[['O',' ',' '],[' ',' ',' '],[' ',' ','X']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
-        #                     [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [['X',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
-        #                     [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [['O',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
 
         entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
                             [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
@@ -358,21 +339,21 @@ def main():
             localBoardIndex = 0
 
         while globalWinner == None:
-            block_num = None
+            position = None
             localWinner = check_current_state(entire_game_state[localBoardIndex])
             if current_player_idx == 0: # Human's turn
                 while localWinner != None:
                     localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Local board ' + str(localBoardIndex) + ' was unavailable. Choose which local board to place in: ')
                     localWinner = check_current_state(entire_game_state[localBoardIndex])
-                block_num = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! localBoardIndex: ' + str(localBoardIndex) + '. Choose where to place (0 to 8): ')
+                position = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! localBoardIndex: ' + str(localBoardIndex) + '. Choose where to place (0 to 8): ')
 
             else: # AI's turn
-                # (maxMoveValue, block_num, localBoardIndex) = max_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=localBoardIndex, moveValue=0, depth=0, difficulty=difficulty, alpha=-100, beta=100)
-                (maxMoveValue, block_num, localBoardIndex) = optimizeMove(player='O', entire_game_state=entire_game_state, localBoardIndex=localBoardIndex, moveValue=0, depth=0, difficulty=difficulty, alpha=-100, beta=100)
-                print('maxMoveValue: ', maxMoveValue, ', ai_Block_num: ', block_num, ', ai_localBoard: ', localBoardIndex)
+                # (maxMoveValue, position, localBoardIndex) = max_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=localBoardIndex, moveValue=0, depth=0, difficulty=difficulty, alpha=-100, beta=100)
+                (maxMoveValue, position, localBoardIndex) = optimizeMove(player='O', entire_game_state=entire_game_state, localBoardIndex=localBoardIndex, moveValue=0, depth=0, difficulty=difficulty, alpha=-100, beta=100)
+                print('maxMoveValue: ', maxMoveValue, ', ai_Block_num: ', position, ', ai_localBoard: ', localBoardIndex)
 
             print('current_player_idx: ' , current_player_idx, ', localBoardIndex: ', localBoardIndex) # TODO BUG current bug is that the ai always returns 0
-            nextLocalBoard = play_move(PLAYERS[current_player_idx], entire_game_state[localBoardIndex], block_num)
+            nextLocalBoard = play_move(PLAYERS[current_player_idx], entire_game_state[localBoardIndex], position)
             localWinner = check_current_state(entire_game_state[localBoardIndex])
             if localWinner != None:
                 print('localWinner: ' + str(localWinner))
@@ -383,7 +364,7 @@ def main():
 
             if current_player_idx == 1: # ai
                 printEntireBoard(entire_game_state)
-                print('ai placed at localBoardIndex: ' + str(localBoardIndex) + ', position: ' + str(block_num)) # TODO bug always prints localBoardIndex = 0, and always places at 0? also cant handle picking a new localBoardIndex
+                print('ai placed at localBoardIndex: ' + str(localBoardIndex) + ', position: ' + str(position)) # TODO bug always prints localBoardIndex = 0, and always places at 0? also cant handle picking a new localBoardIndex
             
             localBoardIndex = nextLocalBoard
             globalWinner = check_current_state(global_game_state)
@@ -400,47 +381,3 @@ def main():
     
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
-
-# BUG TODO 
-# printed this , notice the ' ' in the finished one
-
-# |   |   | O |||   |   |   ||| O | O | O |
-# -----------------------------------------
-# |   |   |   |||   |   |   ||| - |   | - |
-# -----------------------------------------
-# |   |   |   |||   |   |   ||| - | - | - |
-# -----------------------------------------
-
-# -----------------------------------------
-# |   |   |   |||   |   |   ||| O |   |   |
-# -----------------------------------------
-# |   |   |   ||| X |   | X |||   |   |   |
-# -----------------------------------------
-# | X |   | X |||   |   |   ||| X | X |   |
-# -----------------------------------------
-# -----------------------------------------
-# |   |   | O |||   |   | X |||   | O |   |
-# -----------------------------------------
-# | X | O |   |||   |   |   |||   |   |   |
-# -----------------------------------------
-# |   |   |   |||   |   | X |||   |   |   |
-# -----------------------------------------
-# -----------------------------------------
-# | O |   | O |||   |   |   |||   | O | O |
-# -----------------------------------------
-# |   |   |   ||| O |   |   |||   |   |   |
-# -----------------------------------------
-# |   |   |   |||   |   |   |||   |   |   |
-# -----------------------------------------
-
-
-
-# human went 2,8
-# ai placed at localBoardIndex: 8, position: 2
