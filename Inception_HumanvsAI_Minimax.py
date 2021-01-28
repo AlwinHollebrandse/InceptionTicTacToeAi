@@ -2,7 +2,7 @@
 # https://stackabuse.com/minimax-and-alpha-beta-pruning-in-python/
 
 PLAYERS = ['X','O']
-MAXDEPTH = 2
+MAXDEPTH = 5
 # TODO set alpha = minMoveValue and best=maxMoveValue
 
 def play_move(player, localBoardIndex, position):
@@ -287,21 +287,21 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, depth, d
                     replaceAllUnavailableWithEmptySpaces(entire_game_state[localBoardIndex])
 
                     # Next two ifs in Max and Min are the only difference between regular algorithm and minimax
-                    # if player == 'O':
-                        # if maxMoveValue >= beta:
-                        #     print('HERE maxMoveValue:',maxMoveValue,'beta:',beta)
-                        #     return (maxMoveValue, bestAIMaxLocalMove, localBoardPlacedIn)
+                    if player == 'O':
+                        if maxMoveValue >= beta:
+                            print('HERE maxMoveValue:',maxMoveValue,'beta:',beta)
+                            return (maxMoveValue, bestAILocalMove, localBoardPlacedIn)
 
-                        # if maxMoveValue > alpha:
-                        #     alpha = maxMoveValue
+                        if maxMoveValue > alpha:
+                            alpha = maxMoveValue
 
-                    # elil player == 'X':
-                        # if minMoveValue <= alpha: # TODO how does alphabeta actaully work in conjunction with the recursion approach? you dont know the node value until the subtree has been solved, meaning trimming a branch is pointless because its already been solved
-                        #     print('HERE minMoveValue:',minMoveValue,'alpha:',alpha)
-                        #     return (minMoveValue, bestAIMinLocalMove, localBoardPlacedIn)
+                    elif player == 'X':
+                        if minMoveValue <= alpha:
+                            print('HERE minMoveValue:',minMoveValue,'alpha:',alpha)
+                            return (minMoveValue, bestAILocalMove, localBoardPlacedIn)
 
-                        # if minMoveValue < beta:
-                        #     beta = minMoveValue
+                        if minMoveValue < beta:
+                            beta = minMoveValue
    
     # print(player, 'RETURN FINAL maxMoveValue:', maxMoveValue, 'minMoveValue:', minMoveValue, 'bestAILocalMove:',bestAILocalMove, 'depth:',depth)
     if player == 'O': # ai's optimal move value
@@ -381,3 +381,30 @@ def main():
     
 if __name__ == '__main__':
     main()
+
+# TODO BUG visual?
+# -----------------------------------------
+# | X | O | X ||| - | X | O |||   | O | X |
+# -----------------------------------------
+# |   |   | O ||| - | X | - ||| O |   |   |
+# -----------------------------------------
+# |   |   | X ||| - | X | - ||| O | X | X |
+# -----------------------------------------
+# -----------------------------------------
+# | O |   |   |||   |   | O ||| X |   | X |
+# -----------------------------------------
+# | X | O | X ||| O | X |   ||| O |   |   |
+# -----------------------------------------
+# | X |   | X |||   | X |   ||| X |   |   |
+# -----------------------------------------
+# -----------------------------------------
+# |   |   |   |||   | O | O ||| O | - | - |
+# -----------------------------------------
+# | X | O | O |||   |   | O ||| O |   | - |
+# -----------------------------------------
+# |   |   |   |||   |   |   ||| O | - | - |
+# -----------------------------------------
+
+# human went 3,8
+# ai went in 8,6, to get the local win, but then the center piece istn a '-',
+# but i think its purely visual. because i made him move in board 8 again, and he went in board 7 like he picked
