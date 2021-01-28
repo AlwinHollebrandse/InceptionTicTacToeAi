@@ -170,7 +170,7 @@ def blocksGlobalWin(entire_game_state, player, localBoardIndex):
     return blocksLocalWin(temp_global_game_state, player, int(localBoardIndex/3), localBoardIndex%3)
 
 # NOTE if player == 'X' (human), the ai will perform a "min" calc. If the player == 'O' (ai), the the ai will perform a "max" calc.
-def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, maxDepth, currentDepth, difficulty, alpha, beta): # TODO limit iterations?-not super feasible. if not end has been reached, all moves willl be equally viable right?...so do random? or just best local move
+def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, maxDepth, currentDepth, difficulty, alpha, beta): # TODO could make maxdepth variable depending on how many empty spaces there are
     print(player, ', init  localBoardIndex: ' + str(localBoardIndex), ', moveValue: ', moveValue, ', currentDepth: ', currentDepth)
     localBoardPlacedIn = getFirstAvailableBoard(entire_game_state)
     if check_current_state(entire_game_state[localBoardIndex]) != None:
