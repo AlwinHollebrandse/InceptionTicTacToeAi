@@ -2,7 +2,8 @@
 # https://stackabuse.com/minimax-and-alpha-beta-pruning-in-python/
 
 PLAYERS = ['X','O']
-MAXDEPTH = 5
+MAXDIFFICULTY = 4
+
 # TODO set alpha = minMoveValue and best=maxMoveValue
 
 def play_move(player, localBoardIndex, position):
@@ -159,14 +160,14 @@ def printEntireBoard(entire_game_state):
     print('-----------------------------------------')
     print('\n\n\n')
 
-def getInputAsValidNumber(string):
+def getInputAsValidNumber(string, maxNumber):
     humanInput = input(string)
     try:
         if int(humanInput) not in range(9):
             raise Exception()
     except:
-        print('Please enter a valid number (0-8): ')
-        return getInputAsValidNumber(string)
+        print('Please enter a valid number (0-',maxNumber,'): ')
+        return getInputAsValidNumber(string, maxNumber)
     return int(humanInput)
 
 def getOpponent(player):
@@ -194,8 +195,8 @@ def blocksGlobalWin(entire_game_state, player, localBoardIndex):
 
     return blocksLocalWin(temp_global_game_state, player, int(localBoardIndex/3), localBoardIndex%3)
 
-def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, depth, difficulty, alpha, beta): # TODO limit iterations?-not super feasible. if not end has been reached, all moves willl be equally viable right?...so do random? or just best local move
-    print(player, ', init  localBoardIndex: ' + str(localBoardIndex), ', moveValue: ', moveValue, ', depth: ', depth)
+def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, maxDepth, currentDepth, difficulty, alpha, beta): # TODO limit iterations?-not super feasible. if not end has been reached, all moves willl be equally viable right?...so do random? or just best local move
+    print(player, ', init  localBoardIndex: ' + str(localBoardIndex), ', moveValue: ', moveValue, ', currentDepth: ', currentDepth)
     localBoardPlacedIn = getFirstAvailableBoard(entire_game_state)
     if check_current_state(entire_game_state[localBoardIndex]) != None:
         localBoardsToCheck = []
@@ -215,7 +216,7 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, depth, d
     result = checkEntireBoardState(entire_game_state)
 
     if result in ['X', 'O', '-']:
-        print(player, ', global winner, result: ', result, ', localBoardIndex: ', localBoardIndex, ', depth: ', depth)
+        print(player, ', global winner, result: ', result, ', localBoardIndex: ', localBoardIndex, ', currentDepth: ', currentDepth)
 
     if result == 'X':
         return (moveValue-31, 0, localBoardPlacedIn)
@@ -224,10 +225,10 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, depth, d
     elif result == '-':
         return (moveValue, 0, localBoardPlacedIn)
 
-    if depth >= MAXDEPTH:
+    if currentDepth >= maxDepth:
         return (moveValue, 0, localBoardPlacedIn)
 
-    depth += 1
+    currentDepth += 1
 
     for localBoardIndex in localBoardsToCheck:
         for i in range(0, 3):
@@ -235,7 +236,7 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, depth, d
                 if entire_game_state[localBoardIndex][i][j]  == ' ':
                     entire_game_state[localBoardIndex][i][j] = player
 
-                    print(player, ' placed at localBoardIndex: ' + str(localBoardIndex), ', location: ', (i*3 + j), ', depth: ', depth)
+                    print(player, ' placed at localBoardIndex: ' + str(localBoardIndex), ', location: ', (i*3 + j), ', currentDepth: ', currentDepth)
 
                     tempMoveValue = moveValue
                     tempLocalWinner = check_current_state(entire_game_state[localBoardIndex])
@@ -270,18 +271,18 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, depth, d
 
                     # printEntireBoard(entire_game_state)
 
-                    (resultMoveValue, bestNextAILocalMove, bestAILocalBoardPlacedIn) = optimizeMove(player=getOpponent(player), entire_game_state=entire_game_state, localBoardIndex=(i*3 + j), moveValue=tempMoveValue, depth=depth, difficulty=difficulty, alpha=alpha, beta=beta)
+                    (resultMoveValue, bestNextAILocalMove, bestAILocalBoardPlacedIn) = optimizeMove(player=getOpponent(player), entire_game_state=entire_game_state, localBoardIndex=(i*3 + j), moveValue=tempMoveValue, maxDepth=maxDepth, currentDepth=currentDepth, difficulty=difficulty, alpha=alpha, beta=beta)
 
                     if player == 'O' and resultMoveValue > maxMoveValue:
                         maxMoveValue = resultMoveValue
                         bestAILocalMove = (i*3 + j)
                         localBoardPlacedIn = localBoardIndex
-                        # print('HERE MAX', 'resultMoveValue:', resultMoveValue, 'maxMoveValue:', maxMoveValue, 'bestAILocalMove:', bestAILocalMove, 'depth:',depth)
+                        # print('HERE MAX', 'resultMoveValue:', resultMoveValue, 'maxMoveValue:', maxMoveValue, 'bestAILocalMove:', bestAILocalMove, 'currentDepth:',currentDepth)
                     elif player == 'X' and resultMoveValue < minMoveValue:
                         minMoveValue = resultMoveValue
                         bestAILocalMove = (i*3 + j)
                         localBoardPlacedIn = localBoardIndex
-                        # print('HERE MIN', 'resultMoveValue:', resultMoveValue, 'minMoveValue:', minMoveValue, 'bestAILocalMove:', bestAILocalMove, 'depth:',depth)
+                        # print('HERE MIN', 'resultMoveValue:', resultMoveValue, 'minMoveValue:', minMoveValue, 'bestAILocalMove:', bestAILocalMove, 'currentDepth:',currentDepth)
 
                     entire_game_state[localBoardIndex][i][j] = ' '
                     replaceAllUnavailableWithEmptySpaces(entire_game_state[localBoardIndex])
@@ -303,18 +304,26 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, depth, d
                         if minMoveValue < beta:
                             beta = minMoveValue
    
-    # print(player, 'RETURN FINAL maxMoveValue:', maxMoveValue, 'minMoveValue:', minMoveValue, 'bestAILocalMove:',bestAILocalMove, 'depth:',depth)
+    # print(player, 'RETURN FINAL maxMoveValue:', maxMoveValue, 'minMoveValue:', minMoveValue, 'bestAILocalMove:',bestAILocalMove, 'currentDepth:',currentDepth)
     if player == 'O': # ai's optimal move value
-        # print(player, 'RETURN maxMoveValue:', maxMoveValue, 'bestAILocalMove:',bestAILocalMove, 'depth:',depth)
+        # print(player, 'RETURN maxMoveValue:', maxMoveValue, 'bestAILocalMove:',bestAILocalMove, 'currentDepth:',currentDepth)
         return (maxMoveValue, bestAILocalMove, localBoardPlacedIn)
     else: # human's optimal move value
-        # print(player, 'RETURN minMoveValue:', minMoveValue, 'bestAILocalMove:',bestAILocalMove, 'depth:',depth)
+        # print(player, 'RETURN minMoveValue:', minMoveValue, 'bestAILocalMove:',bestAILocalMove, 'currentDepth:',currentDepth)
         return (minMoveValue, bestAILocalMove, localBoardPlacedIn)
 
 def main():
     play_again = 'Y'
-    difficulty = 3
     while play_again.lower() == 'y':
+        difficulty = getInputAsValidNumber('Enter the desired AI difficulty (0,' + str(MAXDIFFICULTY) + '): ', MAXDIFFICULTY)
+        maxDepth = 5
+        if difficulty == 1:
+            maxDepth = 2
+        elif difficulty == 2:
+            maxDepth = 3
+        elif difficulty == 3:
+            maxDepth = 5
+
         global_game_state = [[' ',' ',' '],
                             [' ',' ',' '],
                             [' ',' ',' ']]
@@ -334,7 +343,7 @@ def main():
             current_player_idx = 1
             
         if current_player_idx == 0: # human
-            localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Choose which local board to place first (0 to 8): ')
+            localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Choose which local board to place first (0 to 8): ', 8)
         else: # ai
             localBoardIndex = 0
 
@@ -343,13 +352,13 @@ def main():
             localWinner = check_current_state(entire_game_state[localBoardIndex])
             if current_player_idx == 0: # Human's turn
                 while localWinner != None:
-                    localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Local board ' + str(localBoardIndex) + ' was unavailable. Choose which local board to place in: ')
+                    localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Local board ' + str(localBoardIndex) + ' was unavailable. Choose which local board to place in: ', 8)
                     localWinner = check_current_state(entire_game_state[localBoardIndex])
-                position = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! localBoardIndex: ' + str(localBoardIndex) + '. Choose where to place (0 to 8): ')
+                position = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! localBoardIndex: ' + str(localBoardIndex) + '. Choose where to place (0 to 8): ', 8)
 
             else: # AI's turn
-                # (maxMoveValue, position, localBoardIndex) = max_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=localBoardIndex, moveValue=0, depth=0, difficulty=difficulty, alpha=-100, beta=100)
-                (maxMoveValue, position, localBoardIndex) = optimizeMove(player='O', entire_game_state=entire_game_state, localBoardIndex=localBoardIndex, moveValue=0, depth=0, difficulty=difficulty, alpha=-100, beta=100)
+                # (maxMoveValue, position, localBoardIndex) = max_alpha_beta(entire_game_state=entire_game_state, localBoardIndex=localBoardIndex, moveValue=0, currentDepth=0, difficulty=difficulty, alpha=-100, beta=100)
+                (maxMoveValue, position, localBoardIndex) = optimizeMove(player='O', entire_game_state=entire_game_state, localBoardIndex=localBoardIndex, moveValue=0, maxDepth=maxDepth, currentDepth=0, difficulty=difficulty, alpha=-100, beta=100)
                 print('maxMoveValue: ', maxMoveValue, ', ai_Block_num: ', position, ', ai_localBoard: ', localBoardIndex)
 
             print('current_player_idx: ' , current_player_idx, ', localBoardIndex: ', localBoardIndex) # TODO BUG current bug is that the ai always returns 0
