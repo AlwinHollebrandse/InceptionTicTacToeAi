@@ -1,6 +1,8 @@
 # import numpy as np # TODO set up virtual env and pipenv-once there are dependencies
+# TODO move all helper functions into a helper file for all Inception files
+
 PLAYERS = ['X','O']
-MAXDIFFICULTY = 4
+MAXDIFFICULTY = 5
 
 # TODO set alpha = minMoveValue and best=maxMoveValue
 
@@ -332,7 +334,7 @@ def main():
         if current_player_idx == 0: # human
             localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Choose which local board to place first (0 to 8): ', 8)
         else: # ai
-            localBoardIndex = 0
+            localBoardIndex = 4
 
         while globalWinner == None:
             position = None

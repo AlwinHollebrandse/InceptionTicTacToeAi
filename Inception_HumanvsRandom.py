@@ -8,49 +8,50 @@ global_game_state = [[' ',' ',' '],
 entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
                      [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
                      [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
-players = ['X','O']
+PLAYERS = ['X','O']
 
-def play_move(player, localBoard, block_num):
-    if localBoard[int((block_num)/3)][(block_num)%3] is ' ':
-        localBoard[int((block_num)/3)][(block_num)%3] = player
-        return block_num
+def play_move(player, localBoardIndex, position):
+    if localBoardIndex[int(position/3)][position%3] == ' ':
+        localBoardIndex[int(position/3)][position%3] = player
+        return position
     else:
-        block_num = int(input("Block is not empty, ya blockhead! Choose again: "))
-        return play_move(player, localBoard, block_num)
+        position = getInputAsValidNumber('That position is not empty, ya blockhead! Choose again (0 to 8): ', 8)
+        return play_move(player, localBoardIndex, position)
     
     
-def check_current_state(board):
-    # Check if draw
-    draw_flag = 0
-    for i in range(3):
-        for j in range(3):
-            if board[i][j] is ' ':
-                draw_flag = 1
-    if draw_flag is 0:
-        return 'Draw'
-    
+def check_current_state(board):    
     # Check horizontals
-    if (board[0][0] == board[0][1] and board[0][1] == board[0][2] and board[0][0] is not ' '):
+    if (board[0][0] == board[0][1] and board[0][1] == board[0][2] and board[0][0] in ['X', 'O']):
         return board[0][0]
-    if (board[1][0] == board[1][1] and board[1][1] == board[1][2] and board[1][0] is not ' '):
+    if (board[1][0] == board[1][1] and board[1][1] == board[1][2] and board[1][0] in ['X', 'O']):
         return board[1][0]
-    if (board[2][0] == board[2][1] and board[2][1] == board[2][2] and board[2][0] is not ' '):
+    if (board[2][0] == board[2][1] and board[2][1] == board[2][2] and board[2][0] in ['X', 'O']):
         return board[2][0]
     
     # Check verticals
-    if (board[0][0] == board[1][0] and board[1][0] == board[2][0] and board[0][0] is not ' '):
+    if (board[0][0] == board[1][0] and board[1][0] == board[2][0] and board[0][0] in ['X', 'O']):
         return board[0][0]
-    if (board[0][1] == board[1][1] and board[1][1] == board[2][1] and board[0][1] is not ' '):
+    if (board[0][1] == board[1][1] and board[1][1] == board[2][1] and board[0][1] in ['X', 'O']):
         return board[0][1]
-    if (board[0][2] == board[1][2] and board[1][2] == board[2][2] and board[0][2] is not ' '):
+    if (board[0][2] == board[1][2] and board[1][2] == board[2][2] and board[0][2] in ['X', 'O']):
         return board[0][2]
     
     # Check diagonals
-    if (board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[0][0] is not ' '):
+    if (board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[0][0] in ['X', 'O']):
         return board[1][1]
-    if (board[2][0] == board[1][1] and board[1][1] == board[0][2] and board[2][0] is not ' '):
+    if (board[2][0] == board[1][1] and board[1][1] == board[0][2] and board[2][0] in ['X', 'O']):
         return board[1][1]
     
+    # Check if draw
+    isDraw = True
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == ' ':
+                isDraw = False
+                break
+    if isDraw:
+        return '-'
+
     return None
 
 def getAvailableLocalMoves(board):
@@ -125,64 +126,78 @@ def printEntireBoard(entire_game_state):
     print('-----------------------------------------')
     print('\n\n\n')
 
-# Playing
-availableLocalBoards = [i for i in range(9)]
-globalWinner = ai_localBoard = ai_Block_num = None
-print("New Game!")
-printEntireBoard(entire_game_state)
-player_choice = input("Choose which player goes first - X(human) or O(\"ai\"): ")
-if player_choice.lower() == 'x':
-    current_player_idx = 0
-else:
-    current_player_idx = 1
+def getInputAsValidNumber(string, maxNumber):
+    humanInput = input(string)
+    try:
+        if int(humanInput) not in range(9):
+            raise Exception()
+    except:
+        print('Please enter a valid number (0-',maxNumber,'): ')
+        return getInputAsValidNumber(string, maxNumber)
+    return int(humanInput)
 
-if current_player_idx == 0: # human
-    localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place first (0 to 8): "))
-else: # ai
-    localBoard = random.choice(availableLocalBoards)
-
-while globalWinner == None:
-    localWinner = check_current_state(entire_game_state[localBoard])
-    # print_board(entire_game_state[localBoard])
-    while localWinner is not None: # TODO add check to ensure person's value is 0-8 (see minimax)
-        if current_player_idx == 0: # human
-            localBoard = int(input(str(players[current_player_idx]) + "'s Turn! Choose which local board to place in (" + ', '.join(str(x) for x in availableLocalBoards) + "): ")) #TODO why doesnt *availableLocalBoards work?
-            localWinner = check_current_state(entire_game_state[localBoard])
-        else: # ai
-            localBoard = random.choice(availableLocalBoards)
-            localWinner = check_current_state(entire_game_state[localBoard])
-
-    if current_player_idx == 0: # human # TODO add check to ensure person's value is 0-8 (see minimax)
-        block_num = int(input(str(players[current_player_idx]) + "'s Turn! LocalBoard: " + str(localBoard) + ". Choose where to place (0 to 8): ")) # TODO only show valid moves
-    else: # ai
-        block_num = random.choice(getAvailableLocalMoves(entire_game_state[localBoard]))
-        ai_Block_num = block_num
-        ai_localBoard = localBoard
-    
-    nextLocalBoard = play_move(players[current_player_idx], entire_game_state[localBoard], block_num)
-    localWinner = check_current_state(entire_game_state[localBoard])
-    if localWinner is not None:
-        print("localWinner: " + str(localWinner))
-        availableLocalBoards.remove(localBoard)
-        fillAllLocalEmptySpaces(entire_game_state[localBoard])
-        global_game_state[int((localBoard)/3)][(localBoard)%3] = localWinner
-        print_board(global_game_state)
-    else:
-        localBoard = nextLocalBoard
-
-    if current_player_idx == 1: # ai
+def main():
+    play_again = 'Y'
+    while play_again.lower() == 'y':
+        availableLocalBoards = [i for i in range(9)]
+        globalWinner = None
+        print("New Game!")
         printEntireBoard(entire_game_state)
-        print("ai placed at localBoard: " + str(ai_localBoard) + ", position: " + str(ai_Block_num))
-        
-    globalWinner = check_current_state(global_game_state)
-    if globalWinner == '-':
-        print("Draw!")
-    elif globalWinner is not None:
-        print(str(globalWinner) + " won!")
-    else:
-        current_player_idx = (current_player_idx + 1)%2
+        player_choice = input("Choose which player goes first - X(human) or O(\"ai\"): ")
+        if player_choice.lower() == 'x':
+            current_player_idx = 0
+        else:
+            current_player_idx = 1
+
+        if current_player_idx == 0: # human
+            localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Choose which local board to place first (0 to 8): ', 8)
+        else: # ai
+            localBoardIndex = random.choice(availableLocalBoards)
+
+        while globalWinner == None:
+            localWinner = check_current_state(entire_game_state[localBoardIndex])
+            # print_board(entire_game_state[localBoardIndex])
+            while localWinner is not None: # TODO add check to ensure person's value is 0-8 (see minimax)
+                if current_player_idx == 0: # human
+                    localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Local board ' + str(localBoardIndex) + ' was unavailable. Choose which local board to place in: ', 8)
+                    localWinner = check_current_state(entire_game_state[localBoardIndex])
+                else: # ai
+                    localBoardIndex = random.choice(availableLocalBoards)
+                    localWinner = check_current_state(entire_game_state[localBoardIndex])
+
+            if current_player_idx == 0: # human # TODO add check to ensure person's value is 0-8 (see minimax)
+                position = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! localBoardIndex: ' + str(localBoardIndex) + '. Choose where to place (0 to 8): ', 8)
+            else: # ai
+                position = random.choice(getAvailableLocalMoves(entire_game_state[localBoardIndex]))
+            
+            nextLocalBoard = play_move(PLAYERS[current_player_idx], entire_game_state[localBoardIndex], position)
+            localWinner = check_current_state(entire_game_state[localBoardIndex])
+            if localWinner is not None:
+                print("localWinner: " + str(localWinner))
+                availableLocalBoards.remove(localBoardIndex)
+                fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
+                global_game_state[int((localBoardIndex)/3)][(localBoardIndex)%3] = localWinner
+                print_board(global_game_state)
+
+            if current_player_idx == 1: # ai
+                printEntireBoard(entire_game_state)
+                print('ai placed at localBoardIndex: ' + str(localBoardIndex) + ', position: ' + str(position))
+            
+            localBoardIndex = nextLocalBoard
+            globalWinner = check_current_state(global_game_state)
+            if globalWinner == '-':
+                print("Draw!")
+            elif globalWinner is not None:
+                print(str(globalWinner) + " won!")
+            else:
+                current_player_idx = (current_player_idx + 1)%2
+
+        play_again = input('Wanna try again?(Y/N): ')
+        if play_again == 'N':
+            print('GG!')
     
-    
+if __name__ == '__main__':
+    main()
 
 # TODO skipped me on turn 1... ai has 2 prints...but one wasnt actauly "there"...its a print bug
 # TODO I got to go twice BUG - could also be print bug. havent seen it again
