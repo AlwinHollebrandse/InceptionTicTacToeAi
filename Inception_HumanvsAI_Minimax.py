@@ -9,7 +9,7 @@ def play_move(player, localBoardIndex, position):
         localBoardIndex[int(position/3)][position%3] = player
         return position
     else:
-        position = int(input('Block != empty, ya blockhead! Choose again: '))
+        position = getInputAsValidNumber('That position is not empty, ya blockhead! Choose again (0 to 8): ', 8)
         return play_move(player, localBoardIndex, position)
 
 def check_current_state(board):    
