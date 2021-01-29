@@ -284,6 +284,8 @@ def main():
         elif difficulty == 3:
             maxDepth = 6
 
+        availableLocalBoards = [i for i in range(9)]
+
         global_game_state = [[' ',' ',' '],
                             [' ',' ',' '],
                             [' ',' ',' ']]
@@ -323,7 +325,8 @@ def main():
             localWinner = check_current_state(entire_game_state[localBoardIndex])
             if localWinner != None:
                 print('localWinner: ' + str(localWinner))
-                # availableLocalBoards.remove(localBoardIndex) # TODO update all available boards...
+                # print('available localboards: ' + ', '.join(str(x) for x in availableLocalBoards))
+                availableLocalBoards.remove(localBoardIndex)
                 fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
                 global_game_state[int(localBoardIndex/3)][localBoardIndex%3] = localWinner
                 print_board(global_game_state)
@@ -341,7 +344,7 @@ def main():
             else:
                 current_player_idx = (current_player_idx + 1)%2
                 
-        play_again = input('Wanna try again?(Y/N) : ')
+        play_again = input('Wanna try again?(Y/N): ')
         if play_again == 'N':
             print('GG!')
     
