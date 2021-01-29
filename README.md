@@ -21,8 +21,28 @@ The AI Minimax bot works by following the minimax algorithm. This algorithm work
  
 This implementation also incorporates alpha beta pruning. This type of heuristic prunes a significant amount of the game tree by not investing branches that cannot result in a better score further up the tree. This heuristic drastically reduces the runtime of the minimax algorithm and lets the ai peer ahead with a getter depth without making the foe wait for too long.
  
-# Inception Minimax Difficulty Settings
-There are also difficulty settings. Currently there are four accepted difficulty settings that impact the ai (0, 1, 2, and 3). If the ai is set to difficulty 0 (super easy), the ai looks ahead 2 moves and only rewards global wins. On difficulty 1 (easy), the ai only looks 3 moves ahead and also rewards winning local boards. The next created difficulty setting 2 (medium) lets the ai look ahead by 5 moves and rewards blocking local board wins. The final difficulty setting of 3 enables the ai to peer 6 moves ahead and also rewards blocking global wins.
+## Inception Minimax Difficulty Settings
+There are also difficulty settings. Currently there are six accepted difficulty settings that impact the ai (0 - 5). 
+
+### Difficulty 0 (Super Easy)
+If the ai is set to difficulty 0 (Super Easy), the ai looks ahead 2 moves and only rewards global wins. 
+
+  The final difficulty setting of 3 enables the ai to peer 6 moves ahead and also rewards blocking global wins.
+
+### Difficulty 1 (Easy)
+On difficulty 1 (Easy), the ai only looks 3 moves ahead. This Ai rewards global wins and also rewards winning local boards. More points are rewarded to winning the center and corner boards.
+
+### Difficulty 2 (Medium)
+The next created difficulty setting 2 (Medium) lets the ai look ahead by 5 moves. This Ai rewards global wins, local boards victories (with more points resulting from winning the center and corner boards), and rewards blocking local board wins.
+
+### Difficulty 3 (Hard)
+On difficulty setting 3 (Hard) the ai look ahead by 5 moves. This Ai rewards global wins, local boards victories (with more points resulting from winning the center and corner boards), rewards blocking local board wins, and also rewards blocking global victories for the foe. (Blocking a victory means that if the foe is a single block away from victory, you get rewards for going there before them)
+
+### Difficulty 4 (Super Hard)
+On difficulty 4 (Super Hard) the ai look ahead by 5 moves. This Ai rewards global wins, local boards victories (with more points resulting from winning the center and corner boards), rewards blocking local board wins, and also rewards blocking global victories for the foe. The AI also gets rewarded for getting one move away from winning a local board.
+
+### Difficulty 5 (Insane)
+On difficulty 5 (Insane) the ai look ahead by 5 moves. This Ai rewards global wins, local boards victories (with more points resulting from winning the center and corner boards), rewards blocking local board wins, and also rewards blocking global victories for the foe. The AI also gets rewarded for getting one move away from winning a local board and the global board
 
 ## How to use
 
