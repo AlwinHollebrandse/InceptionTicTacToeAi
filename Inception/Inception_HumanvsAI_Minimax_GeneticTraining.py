@@ -5,8 +5,49 @@ PLAYERS = ['X','O']
 MAXDIFFICULTY = 5
 SOL_PER_POP = 8
 NUM_WEIGHTS = 7
+NUM_GENERATIONS = 5
 
 # TODO set alpha = minMoveValue and best=maxMoveValue
+
+def crossover(parents):
+    crossoverPoint = int(len(parents[0])/2)    
+    offspring = []
+    np.random.shuffle(parents)
+    for i in range(0, len(parents), 2):
+        # print('HERE', parents[i], parents[i][:crossoverPoint], parents[i][crossoverPoint:])
+        firstHalf = parents[i][:crossoverPoint]
+        secondHalf = parents[i+1][crossoverPoint:]
+        offspring.append(np.concatenate((firstHalf, secondHalf), axis=0))
+
+        firstHalf = parents[i+1][:crossoverPoint]
+        secondHalf = parents[i][crossoverPoint]
+        offspring.append(np.concatenate((firstHalf, secondHalf), axis=0))
+
+        # offspring.append(parents[i][:crossoverPoint] + parents[i+1][crossoverPoint:])
+        # offspring.append(np.concatenate((parents[i][:crossoverPoint], parents[i+1][crossoverPoint:])), axis=0))
+
+
+        # data = np.array([parents[i], parents[i+1]])
+        # offspring.append(np.average(data, axis=0)) # take avg of 2 parents
+    return offspring
+
+def mutate(offspringCrossOver):
+    for offspring in offspringCrossOver:
+        randomIndex = np.random.randint(len(offspring))
+        randomValue = np.random.uniform(low=0, high=10.0)
+        offspring[randomIndex] = randomValue
+
+def createNewGeneration(winningValues):
+    generation = crossover(winningValues)
+    mutate(generation)
+    return generation
+
+def getFirstLegalMove(board):
+    for i in range(9):
+        if board[int(i/3)][i%3] == ' ':
+            return i
+    print('There were no legal moves in this board') # TODO BUG its possible that the the ai needs to choose board itself, which this wouldnt account for
+    return None
 
 def blocksLocalWin(board, player, i, j):
     opponent = getOpponent(player)
@@ -37,7 +78,7 @@ def getsOneAwayFromGlobalWin(entire_game_state, player):
     return getsOneAwayFromLocalWin(temp_global_game_state, player)
 
 # NOTE if player == 'X' (human), the ai will perform a "min" calc. If the player == 'O' (ai), the the ai will perform a "max" calc.
-def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, maxDepth, currentDepth, difficulty, alpha, beta): # TODO could make maxdepth variable depending on how many empty spaces there are
+def optimizeMove(player, entire_game_state, scoreChangeValues, localBoardIndex, moveValue, maxDepth, currentDepth, difficulty, alpha, beta): # TODO could make maxdepth variable depending on how many empty spaces there are
     localBoardPlacedIn = getFirstAvailableBoard(entire_game_state)
     if check_current_state(entire_game_state[localBoardIndex]) != None:
         localBoardsToCheck = []
@@ -52,7 +93,7 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, maxDepth
     maxMoveValue = -100 # TODO combine into 1 var if possible
     minMoveValue = 100
 
-    bestAILocalMove = None # TODO BUG could technically return None and break
+    bestAILocalMove = None # TODO BUG could technically return None and break. currently bandaided by 'getFirstLegalMove'
 
     result = checkEntireBoardState(entire_game_state)
 
@@ -80,42 +121,48 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, maxDepth
                         fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
 
                     if difficulty >= 1:
-                        scoreChange = 2
+                        scoreChange = scoreChangeValues[0]
                         if localBoardIndex in [0,2,6,8]: # in corner board
-                            scoreChange += .5
+                            scoreChange += scoreChangeValues[1]
                         elif localBoardIndex in [4]: # in center board
-                            scoreChange += 1
+                            scoreChange += scoreChangeValues[2]
                         if tempLocalWinner == 'X':
                             tempMoveValue -= scoreChange
                         elif tempLocalWinner == 'O':
                             tempMoveValue += scoreChange
+
                     if difficulty >= 2 and tempLocalWinner == None:
+                        scoreChange = scoreChangeValues[3]
                         (blocked, player) = blocksLocalWin(entire_game_state[localBoardIndex], player, i, j)
                         if blocked and player == 'X':
                             tempMoveValue -= 1
                         elif blocked and player == 'O':
                             tempMoveValue += 1
+
                     if difficulty >= 3:
+                        scoreChange = scoreChangeValues[4]
                         (blocked, player) = blocksGlobalWin(entire_game_state, player, localBoardIndex)
                         if blocked and player == 'X':
                             tempMoveValue -= 1
                         elif blocked and player == 'O':
-                            tempMoveValue += 1  
+                            tempMoveValue += 1
+
                     if difficulty >= 4:
-                        scoreChange = getsOneAwayFromLocalWin(entire_game_state[localBoardIndex], player) * 0.5 # TODO should this be multiplied? how many points should any of these be? 
+                        scoreChange = getsOneAwayFromLocalWin(entire_game_state[localBoardIndex], player) * scoreChangeValues[5]
                         if player == 'X':
                             tempMoveValue -= scoreChange
                         elif player == 'O':
                             tempMoveValue += scoreChange
+
                     if difficulty >= 5:
-                        scoreChange = getsOneAwayFromGlobalWin(entire_game_state, player) * 1 # TODO should this be multiplied? how many points should any of these be? 
+                        scoreChange = getsOneAwayFromGlobalWin(entire_game_state, player) * scoreChangeValues[6]
                         if player == 'X':
                             tempMoveValue -= scoreChange
                         elif player == 'O':
                             tempMoveValue += scoreChange
                     # TODO maybe reward less points the more depth youre looking, based on the idea that the foe has more oppurtunities for mistakes. 
 
-                    (resultMoveValue, bestNextAILocalMove, bestAILocalBoardPlacedIn) = optimizeMove(player=getOpponent(player), entire_game_state=entire_game_state, localBoardIndex=(i*3 + j), moveValue=tempMoveValue, maxDepth=maxDepth, currentDepth=currentDepth, difficulty=difficulty, alpha=alpha, beta=beta)
+                    (resultMoveValue, bestNextAILocalMove, bestAILocalBoardPlacedIn) = optimizeMove(player=getOpponent(player), entire_game_state=entire_game_state, scoreChangeValues=scoreChangeValues, localBoardIndex=(i*3 + j), moveValue=tempMoveValue, maxDepth=maxDepth, currentDepth=currentDepth, difficulty=difficulty, alpha=alpha, beta=beta)
 
                     if player == 'O' and resultMoveValue > maxMoveValue:
                         maxMoveValue = resultMoveValue
@@ -150,90 +197,112 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, maxDepth
         return (minMoveValue, bestAILocalMove, localBoardPlacedIn)
 
 def main():
-    play_again = 'Y'
+    currentGeneration = 0
     pop_size = (SOL_PER_POP, NUM_WEIGHTS) # The population will have SOL_PER_POP chromosome where each chromosome has NUM_WEIGHTS genes.
-    new_population = np.random.uniform(low=-4.0, high=4.0, size=pop_size)
+    new_population = np.random.uniform(low=0, high=10.0, size=pop_size)
+    print(new_population)
+    xPlayerIndex = 0
+    oPlayerIndex = 1
 
-    while play_again.lower() == 'y':
-        difficulty = getInputAsValidNumber('Enter the desired AI difficulty (0,' + str(MAXDIFFICULTY) + '): ', MAXDIFFICULTY)
-        maxDepth = 2
-        if difficulty == 1:
-            maxDepth = 3
-        elif difficulty == 2:
-            maxDepth = 4
-        elif difficulty == 3:
+    # new_population = createNewGeneration(new_population)
+
+    while currentGeneration < NUM_GENERATIONS:
+        winningValues = []
+        xPlayerIndex = 0
+        oPlayerIndex = 1
+        while xPlayerIndex < SOL_PER_POP:
+            difficulty = 5 # getInputAsValidNumber('Enter the desired AI difficulty (0,' + str(MAXDIFFICULTY) + '): ', MAXDIFFICULTY)
             maxDepth = 5
-        elif difficulty == 4:
-            maxDepth = 6
-        elif difficulty == 5:
-            maxDepth = 7
 
-        availableLocalBoards = [i for i in range(9)]
+            availableLocalBoards = [i for i in range(9)]
 
-        global_game_state = [[' ',' ',' '],
-                            [' ',' ',' '],
-                            [' ',' ',' ']]
+            global_game_state = [[' ',' ',' '],
+                                [' ',' ',' '],
+                                [' ',' ',' ']]
 
-        entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
-                            [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
-                            [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
+            entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
+                                [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
+                                [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
 
-        globalWinner = None
+            globalWinner = None
 
-        print('\nNew Game!')
-        printEntireBoard(entire_game_state)
-        player_choice = input('Choose which player goes first - X(human) or O(MiniMax AI): ')
-        if player_choice.lower() == 'x':
-            current_player_idx = 0
-        else:
-            current_player_idx = 1
-            
-        if current_player_idx == 0: # human
-            localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Choose which local board to place first (0 to 8): ', 8)
-        else: # ai
+            print('\nNew Game! current generation: ', currentGeneration)
+            printEntireBoard(entire_game_state)
+
+            player_choice = np.random.randint(2)
+            if player_choice == 0:
+                current_player_idx = 0
+                firstPlayer = 'X'
+            else:
+                current_player_idx = 1
+                firstPlayer = 'O'
+
+            print('\n Player', firstPlayer, 'is going first generation:', currentGeneration, ', xPlayerIndex:', xPlayerIndex, ', oPlayerIndex:', oPlayerIndex)
+
             localBoardIndex = 4
 
-        while globalWinner == None:
-            position = None
-            localWinner = check_current_state(entire_game_state[localBoardIndex])
-            if current_player_idx == 0: # Human's turn
-                while localWinner != None:
-                    localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Local board ' + str(localBoardIndex) + ' was unavailable. Choose which local board to place in: ', 8)
-                    localWinner = check_current_state(entire_game_state[localBoardIndex])
-                position = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! localBoardIndex: ' + str(localBoardIndex) + '. Choose where to place (0 to 8): ', 8)
+            while globalWinner == None:
+                position = None
+                localWinner = check_current_state(entire_game_state[localBoardIndex])
+                if current_player_idx == 0: # X AI's turn
+                    print('X AI is plotting your doom')
+                    (maxMoveValue, position, localBoardIndex) = optimizeMove(player='X', entire_game_state=entire_game_state, scoreChangeValues=new_population[xPlayerIndex], localBoardIndex=localBoardIndex, moveValue=0, maxDepth=maxDepth, currentDepth=0, difficulty=difficulty, alpha=-100, beta=100)
 
-            else: # AI's turn
-                print('AI is plotting your doom')
-                (maxMoveValue, position, localBoardIndex) = optimizeMove(player='O', entire_game_state=entire_game_state, localBoardIndex=localBoardIndex, moveValue=0, maxDepth=maxDepth, currentDepth=0, difficulty=difficulty, alpha=-100, beta=100)
+                else: # O AI's turn
+                    print('O AI is plotting your doom')
+                    (maxMoveValue, position, localBoardIndex) = optimizeMove(player='O', entire_game_state=entire_game_state, scoreChangeValues=new_population[oPlayerIndex], localBoardIndex=localBoardIndex, moveValue=0, maxDepth=maxDepth, currentDepth=0, difficulty=difficulty, alpha=-100, beta=100)
 
-            nextLocalBoard = play_move(PLAYERS[current_player_idx], entire_game_state[localBoardIndex], position)
-            localWinner = check_current_state(entire_game_state[localBoardIndex])
-            if localWinner != None:
-                print('localWinner: ' + str(localWinner))
-                # print('available localboards: ' + ', '.join(str(x) for x in availableLocalBoards))
-                availableLocalBoards.remove(localBoardIndex)
-                fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
-                global_game_state[int(localBoardIndex/3)][localBoardIndex%3] = localWinner
+                if position == None:
+                    print(position, localBoardIndex)
+                    position = getFirstLegalMove(entire_game_state[localBoardIndex])
+                    print_board(global_game_state)
+                    printEntireBoard(entire_game_state)
+
+                nextLocalBoard = play_move(PLAYERS[current_player_idx], entire_game_state[localBoardIndex], position)
+                localWinner = check_current_state(entire_game_state[localBoardIndex])
+                if localWinner != None:
+                    print('localWinner: ' + str(localWinner))
+                    # print('available localboards: ' + ', '.join(str(x) for x in availableLocalBoards))
+                    availableLocalBoards.remove(localBoardIndex)
+                    fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
+                    global_game_state[int(localBoardIndex/3)][localBoardIndex%3] = localWinner
+                    # print_board(global_game_state)
+
+                # if current_player_idx == 1: # ai
+                #     print_board(global_game_state)
+                #     printEntireBoard(entire_game_state)
+                #     print('ai placed at localBoardIndex: ' + str(localBoardIndex) + ', position: ' + str(position))
+
                 # print_board(global_game_state)
-
-            if current_player_idx == 1: # ai
-                print_board(global_game_state)
-                printEntireBoard(entire_game_state)
+                # printEntireBoard(entire_game_state)
                 print('ai placed at localBoardIndex: ' + str(localBoardIndex) + ', position: ' + str(position))
-            
-            localBoardIndex = nextLocalBoard
-            globalWinner = check_current_state(global_game_state)
-            if globalWinner == '-':
-                print('Draw!')
-            elif globalWinner != None:
-                print_board(global_game_state)
-                print(str(globalWinner) + ' won!')
-            else:
-                current_player_idx = (current_player_idx + 1)%2
                 
-        play_again = input('Wanna try again?(Y/N): ')
-        if play_again == 'N':
-            print('GG!')
+                localBoardIndex = nextLocalBoard
+                globalWinner = check_current_state(global_game_state)
+                if globalWinner == '-':
+                    print('Draw!')
+                elif globalWinner != None:
+                    print_board(global_game_state)
+                    print(str(globalWinner) + ' won!')
+
+                    # getting the possible parents for next generation
+                    if globalWinner == 'X':
+                        winningValues.append(new_population[xPlayerIndex])
+                    else:
+                        winningValues.append(new_population[oPlayerIndex])
+
+                    xPlayerIndex += 2
+                    oPlayerIndex += 2
+
+                else:
+                    current_player_idx = (current_player_idx + 1)%2
+
+        print('HERE ONE GEN DONE currentGeneration:', currentGeneration)              
+
+        new_population = createNewGeneration(winningValues)
+        # np.savetxt('trained_state_values_X.txt', state_values_for_AI_X, fmt = '%.6f')
+        currentGeneration += 1
+        # TODO rn this doesnt return a single best combinition
     
 if __name__ == '__main__':
     main()
