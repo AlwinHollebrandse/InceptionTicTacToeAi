@@ -1,8 +1,10 @@
-# import numpy as np # TODO set up virtual env and pipenv-once there are dependencies
+import numpy as np # TODO set up virtual env and pipenv-once there are dependencies
 from HelperFunctions import *
 
 PLAYERS = ['X','O']
 MAXDIFFICULTY = 5
+SOL_PER_POP = 8
+NUM_WEIGHTS = 7
 
 # TODO set alpha = minMoveValue and best=maxMoveValue
 
@@ -55,9 +57,9 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, maxDepth
     result = checkEntireBoardState(entire_game_state)
 
     if result == 'X':
-        return (moveValue-31, 0, localBoardPlacedIn)
+        return (moveValue-90, 0, localBoardPlacedIn)
     elif result == 'O':
-        return (moveValue+30, 0, localBoardPlacedIn)
+        return (moveValue+90, 0, localBoardPlacedIn)
     elif result == '-':
         return (moveValue, 0, localBoardPlacedIn)
 
@@ -111,6 +113,7 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, maxDepth
                             tempMoveValue -= scoreChange
                         elif player == 'O':
                             tempMoveValue += scoreChange
+                    # TODO maybe reward less points the more depth youre looking, based on the idea that the foe has more oppurtunities for mistakes. 
 
                     (resultMoveValue, bestNextAILocalMove, bestAILocalBoardPlacedIn) = optimizeMove(player=getOpponent(player), entire_game_state=entire_game_state, localBoardIndex=(i*3 + j), moveValue=tempMoveValue, maxDepth=maxDepth, currentDepth=currentDepth, difficulty=difficulty, alpha=alpha, beta=beta)
 
@@ -148,6 +151,9 @@ def optimizeMove(player, entire_game_state, localBoardIndex, moveValue, maxDepth
 
 def main():
     play_again = 'Y'
+    pop_size = (SOL_PER_POP, NUM_WEIGHTS) # The population will have SOL_PER_POP chromosome where each chromosome has NUM_WEIGHTS genes.
+    new_population = np.random.uniform(low=-4.0, high=4.0, size=pop_size)
+
     while play_again.lower() == 'y':
         difficulty = getInputAsValidNumber('Enter the desired AI difficulty (0,' + str(MAXDIFFICULTY) + '): ', MAXDIFFICULTY)
         maxDepth = 2
@@ -208,9 +214,10 @@ def main():
                 availableLocalBoards.remove(localBoardIndex)
                 fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
                 global_game_state[int(localBoardIndex/3)][localBoardIndex%3] = localWinner
-                print_board(global_game_state)
+                # print_board(global_game_state)
 
             if current_player_idx == 1: # ai
+                print_board(global_game_state)
                 printEntireBoard(entire_game_state)
                 print('ai placed at localBoardIndex: ' + str(localBoardIndex) + ', position: ' + str(position))
             
@@ -219,6 +226,7 @@ def main():
             if globalWinner == '-':
                 print('Draw!')
             elif globalWinner != None:
+                print_board(global_game_state)
                 print(str(globalWinner) + ' won!')
             else:
                 current_player_idx = (current_player_idx + 1)%2
@@ -256,3 +264,34 @@ if __name__ == '__main__':
 # human went 3,8
 # ai went in 8,6, to get the local win, but then the center piece istn a '-',
 # but i think its purely visual. because i made him move in board 8 again, and he went in board 7 like he picked
+
+
+# -----------------------------------------
+# | O | X |   |||   | O | X |||   |   | O |
+# -----------------------------------------
+# |   |   |   |||   |   |   |||   |   | X |
+# -----------------------------------------
+# |   |   |   |||   |   |   |||   |   |   |
+# -----------------------------------------
+# -----------------------------------------
+# |   |   |   ||| X |   |   |||   |   |   |
+# -----------------------------------------
+# |   |   | X |||   |   |   ||| O |   |   |
+# -----------------------------------------
+# |   |   |   |||   |   |   ||| O |   |   |
+# -----------------------------------------
+# -----------------------------------------
+# | O |   |   |||   |   |   |||   |   |   |
+# -----------------------------------------
+# |   |   |   |||   |   |   |||   |   |   |
+# -----------------------------------------
+# | X |   |   |||   |   |   |||   |   |   |
+# -----------------------------------------
+# ai went 6,0, after human went 6,6
+
+
+# TODO my idea to imporve this is to use a genetic alg to find the best values for the scores. To accomplish this,
+# I will set up 1+ listof values that are the randomly genertaed scores. For both x and o (ai vs ai), using depth 5 for speed/acuracy blend 
+# the winner will have its score combined with different winners...probaly via average or random value between the scores. The issue is slecting the best "winner"
+# because not all ais win as well. Natievly, winning in less moves is better, but that could also be caused by the foe being mega bad so it might not be ideal
+

@@ -45,15 +45,16 @@ On difficulty 4 (Super Hard) the ai look ahead by 5 moves. This Ai rewards globa
 On difficulty 5 (Insane) the ai look ahead by 5 moves. This Ai rewards global wins, local boards victories (with more points resulting from winning the center and corner boards), rewards blocking local board wins, and also rewards blocking global victories for the foe. The AI also gets rewarded for getting one move away from winning a local board and on the global board
 
 ## How to use
+All dependencies were managed with pipenv. To install them, run ```pipenv install``` while in the folder containing this code.
 
 ### Play against the Minimax bot
-python3 ./Inception_HumanvsAI_Minimax.py
+```python3 ./Inception/Inception_HumanvsAI_Minimax.py```
 
 ### Play against random move bot
-python3 ./Inception_HumanvsRandom.py
+```python3 ./Inception/Inception_HumanvsRandom.py```
 
 ### Play against another human player (Regular tic tac toe)
-python3 ./Inception_HumanvsHuman.py
+```python3 ./Inception/Inception_HumanvsHuman.py```
 
 
 
