@@ -3,9 +3,9 @@ from HelperFunctions import *
 
 PLAYERS = ['X','O']
 MAXDIFFICULTY = 5
-SOL_PER_POP = 10
+SOL_PER_POP = 12
 NUM_WEIGHTS = 7
-NUM_GENERATIONS = 1
+NUM_GENERATIONS = 30
 
 # TODO set alpha = minMoveValue and best=maxMoveValue
 
