@@ -3,32 +3,37 @@ from HelperFunctions import *
 
 PLAYERS = ['X','O']
 MAXDIFFICULTY = 5
-SOL_PER_POP = 8
+SOL_PER_POP = 10
 NUM_WEIGHTS = 7
-NUM_GENERATIONS = 5
+NUM_GENERATIONS = 1
 
 # TODO set alpha = minMoveValue and best=maxMoveValue
 
+def singlePointCrossover(parent0, parent1):
+    crossoverPoint = int(len(parent0)/2) # TODO or random instead of middle
+    firstHalf = parent0[:crossoverPoint]
+    secondHalf = parent1[crossoverPoint:]
+    return np.concatenate((firstHalf, secondHalf), axis=0)
+
+def uniformCrossover(parent0, parent1):
+    singleOffspring = []
+    for geneIndex in range(len(parent0)):
+        parentGene = np.random.randint(2)
+        if parentGene == 0:
+            singleOffspring.append(parent0[geneIndex])
+        else:
+            singleOffspring.append(parent1[geneIndex])
+    return singleOffspring
+
 def crossover(parents):
-    crossoverPoint = int(len(parents[0])/2)    
     offspring = []
     np.random.shuffle(parents)
-    for i in range(0, len(parents), 2):
-        # print('HERE', parents[i], parents[i][:crossoverPoint], parents[i][crossoverPoint:])
-        firstHalf = parents[i][:crossoverPoint]
-        secondHalf = parents[i+1][crossoverPoint:]
-        offspring.append(np.concatenate((firstHalf, secondHalf), axis=0))
-
-        firstHalf = parents[i+1][:crossoverPoint]
-        secondHalf = parents[i][crossoverPoint]
-        offspring.append(np.concatenate((firstHalf, secondHalf), axis=0))
-
-        # offspring.append(parents[i][:crossoverPoint] + parents[i+1][crossoverPoint:])
-        # offspring.append(np.concatenate((parents[i][:crossoverPoint], parents[i+1][crossoverPoint:])), axis=0))
-
-
-        # data = np.array([parents[i], parents[i+1]])
-        # offspring.append(np.average(data, axis=0)) # take avg of 2 parents
+    while len(offspring) < SOL_PER_POP:
+        parent0 = parents[np.random.randint(len(parents))]
+        parent1 = parents[np.random.randint(len(parents))]
+        # singleOffspring = singlePointCrossover(parent0, parent1)
+        singleOffspring = uniformCrossover(parent0, parent1)
+        offspring.append(singleOffspring)
     return offspring
 
 def mutate(offspringCrossOver):
@@ -196,107 +201,122 @@ def optimizeMove(player, entire_game_state, scoreChangeValues, localBoardIndex, 
     else: # human's optimal move value
         return (minMoveValue, bestAILocalMove, localBoardPlacedIn)
 
+def aiFaceOff(winningValues, new_population, xPlayerIndex, oPlayerIndex, currentGeneration):
+    difficulty = 5 # getInputAsValidNumber('Enter the desired AI difficulty (0,' + str(MAXDIFFICULTY) + '): ', MAXDIFFICULTY)
+    maxDepth = 5
+
+    availableLocalBoards = [i for i in range(9)]
+
+    global_game_state = [[' ',' ',' '],
+                        [' ',' ',' '],
+                        [' ',' ',' ']]
+
+    entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
+                        [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
+                        [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
+
+    globalWinner = None
+
+    print('\nNew Game! current generation: ', currentGeneration)
+    printEntireBoard(entire_game_state)
+
+    player_choice = np.random.randint(2)
+    if player_choice == 0:
+        current_player_idx = 0
+        firstPlayer = 'X'
+    else:
+        current_player_idx = 1
+        firstPlayer = 'O'
+
+    print('\n Player', firstPlayer, 'is going first generation:', currentGeneration, ', xPlayerIndex:', xPlayerIndex, ', oPlayerIndex:', oPlayerIndex, ' len of newPop:', len(new_population))
+
+    localBoardIndex = 4
+
+    while globalWinner == None:
+        position = None
+        localWinner = check_current_state(entire_game_state[localBoardIndex])
+        if current_player_idx == 0: # X AI's turn
+            print('X AI is plotting your doom')
+            (maxMoveValue, position, localBoardIndex) = optimizeMove(player='X', entire_game_state=entire_game_state, scoreChangeValues=new_population[xPlayerIndex], localBoardIndex=localBoardIndex, moveValue=0, maxDepth=maxDepth, currentDepth=0, difficulty=difficulty, alpha=-100, beta=100)
+
+        else: # O AI's turn
+            print('O AI is plotting your doom')
+            (maxMoveValue, position, localBoardIndex) = optimizeMove(player='O', entire_game_state=entire_game_state, scoreChangeValues=new_population[oPlayerIndex], localBoardIndex=localBoardIndex, moveValue=0, maxDepth=maxDepth, currentDepth=0, difficulty=difficulty, alpha=-100, beta=100)
+
+        if position == None:
+            print(position, localBoardIndex)
+            position = getFirstLegalMove(entire_game_state[localBoardIndex])
+            print_board(global_game_state)
+            printEntireBoard(entire_game_state)
+
+        nextLocalBoard = play_move(PLAYERS[current_player_idx], entire_game_state[localBoardIndex], position)
+        localWinner = check_current_state(entire_game_state[localBoardIndex])
+        if localWinner != None:
+            print('localWinner: ' + str(localWinner))
+            availableLocalBoards.remove(localBoardIndex)
+            fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
+            global_game_state[int(localBoardIndex/3)][localBoardIndex%3] = localWinner
+
+        # print_board(global_game_state)
+        # printEntireBoard(entire_game_state)
+        print('ai placed at localBoardIndex: ' + str(localBoardIndex) + ', position: ' + str(position))
+        
+        localBoardIndex = nextLocalBoard
+        globalWinner = check_current_state(global_game_state)
+        if globalWinner == '-':
+            print('Draw!')
+        elif globalWinner != None:
+            print_board(global_game_state)
+            print(str(globalWinner) + ' won!')
+
+            # getting the possible parents for next generation
+            if globalWinner == 'X':
+                winningValues.append(new_population[xPlayerIndex])
+            else:
+                winningValues.append(new_population[oPlayerIndex])
+
+        else:
+            current_player_idx = (current_player_idx + 1)%2
+
+def winnerTournament(startingWinningValues):
+    print('Finding the final winner')
+    winningValues = startingWinningValues
+    while len(winningValues) > 1:
+        roundWinners = []
+        xPlayerIndex = 0
+        oPlayerIndex = 1 # TODO BUG what if winning values is odd length
+        for i in range(0, len(winningValues), 2):
+            if xPlayerIndex < len(winningValues) and oPlayerIndex < len(winningValues):
+                aiFaceOff(roundWinners, winningValues, xPlayerIndex, oPlayerIndex, len(winningValues))
+                xPlayerIndex += 2
+                oPlayerIndex += 2
+            else:
+                if xPlayerIndex < len(winningValues):
+                    roundWinners.append(winningValues[xPlayerIndex])
+                if oPlayerIndex < len(winningValues):
+                    roundWinners.append(winningValues[oPlayerIndex])
+
+        winningValues = roundWinners
+    print('The final winning values are:', winningValues)
+    np.savetxt('./Inception/GeneticTrainingValues', winningValues, fmt = '%.6f')
+
+
 def main():
     currentGeneration = 0
     pop_size = (SOL_PER_POP, NUM_WEIGHTS) # The population will have SOL_PER_POP chromosome where each chromosome has NUM_WEIGHTS genes.
     new_population = np.random.uniform(low=0, high=10.0, size=pop_size)
-    print(new_population)
     xPlayerIndex = 0
     oPlayerIndex = 1
 
-    # new_population = createNewGeneration(new_population)
-
     while currentGeneration < NUM_GENERATIONS:
+        np.random.shuffle(new_population)
         winningValues = []
         xPlayerIndex = 0
         oPlayerIndex = 1
         while xPlayerIndex < SOL_PER_POP:
-            difficulty = 5 # getInputAsValidNumber('Enter the desired AI difficulty (0,' + str(MAXDIFFICULTY) + '): ', MAXDIFFICULTY)
-            maxDepth = 5
-
-            availableLocalBoards = [i for i in range(9)]
-
-            global_game_state = [[' ',' ',' '],
-                                [' ',' ',' '],
-                                [' ',' ',' ']]
-
-            entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
-                                [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
-                                [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
-
-            globalWinner = None
-
-            print('\nNew Game! current generation: ', currentGeneration)
-            printEntireBoard(entire_game_state)
-
-            player_choice = np.random.randint(2)
-            if player_choice == 0:
-                current_player_idx = 0
-                firstPlayer = 'X'
-            else:
-                current_player_idx = 1
-                firstPlayer = 'O'
-
-            print('\n Player', firstPlayer, 'is going first generation:', currentGeneration, ', xPlayerIndex:', xPlayerIndex, ', oPlayerIndex:', oPlayerIndex)
-
-            localBoardIndex = 4
-
-            while globalWinner == None:
-                position = None
-                localWinner = check_current_state(entire_game_state[localBoardIndex])
-                if current_player_idx == 0: # X AI's turn
-                    print('X AI is plotting your doom')
-                    (maxMoveValue, position, localBoardIndex) = optimizeMove(player='X', entire_game_state=entire_game_state, scoreChangeValues=new_population[xPlayerIndex], localBoardIndex=localBoardIndex, moveValue=0, maxDepth=maxDepth, currentDepth=0, difficulty=difficulty, alpha=-100, beta=100)
-
-                else: # O AI's turn
-                    print('O AI is plotting your doom')
-                    (maxMoveValue, position, localBoardIndex) = optimizeMove(player='O', entire_game_state=entire_game_state, scoreChangeValues=new_population[oPlayerIndex], localBoardIndex=localBoardIndex, moveValue=0, maxDepth=maxDepth, currentDepth=0, difficulty=difficulty, alpha=-100, beta=100)
-
-                if position == None:
-                    print(position, localBoardIndex)
-                    position = getFirstLegalMove(entire_game_state[localBoardIndex])
-                    print_board(global_game_state)
-                    printEntireBoard(entire_game_state)
-
-                nextLocalBoard = play_move(PLAYERS[current_player_idx], entire_game_state[localBoardIndex], position)
-                localWinner = check_current_state(entire_game_state[localBoardIndex])
-                if localWinner != None:
-                    print('localWinner: ' + str(localWinner))
-                    # print('available localboards: ' + ', '.join(str(x) for x in availableLocalBoards))
-                    availableLocalBoards.remove(localBoardIndex)
-                    fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
-                    global_game_state[int(localBoardIndex/3)][localBoardIndex%3] = localWinner
-                    # print_board(global_game_state)
-
-                # if current_player_idx == 1: # ai
-                #     print_board(global_game_state)
-                #     printEntireBoard(entire_game_state)
-                #     print('ai placed at localBoardIndex: ' + str(localBoardIndex) + ', position: ' + str(position))
-
-                # print_board(global_game_state)
-                # printEntireBoard(entire_game_state)
-                print('ai placed at localBoardIndex: ' + str(localBoardIndex) + ', position: ' + str(position))
-                
-                localBoardIndex = nextLocalBoard
-                globalWinner = check_current_state(global_game_state)
-                if globalWinner == '-':
-                    print('Draw!')
-                elif globalWinner != None:
-                    print_board(global_game_state)
-                    print(str(globalWinner) + ' won!')
-
-                    # getting the possible parents for next generation
-                    if globalWinner == 'X':
-                        winningValues.append(new_population[xPlayerIndex])
-                    else:
-                        winningValues.append(new_population[oPlayerIndex])
-
-                    xPlayerIndex += 2
-                    oPlayerIndex += 2
-
-                else:
-                    current_player_idx = (current_player_idx + 1)%2
-
+            aiFaceOff(winningValues, new_population, xPlayerIndex, oPlayerIndex, currentGeneration)
+            xPlayerIndex += 2
+            oPlayerIndex += 2
         print('HERE ONE GEN DONE currentGeneration:', currentGeneration)              
 
         new_population = createNewGeneration(winningValues)
@@ -304,9 +324,14 @@ def main():
         currentGeneration += 1
         # TODO rn this doesnt return a single best combinition
     
+    winnerTournament(winningValues)
+    
+    # winnerTournament()
+    
 if __name__ == '__main__':
     main()
 
+# The final winning values are: [[2.9793802250542036, 3.296807981956942, 9.232239154420398, 5.176796334843605, 7.784129773601993, 3.43421578026331, 6.234167038444548]]
 # TODO BUG visual?
 # -----------------------------------------
 # | X | O | X ||| - | X | O |||   | O | X |
