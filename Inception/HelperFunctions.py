@@ -56,6 +56,26 @@ def checkEntireBoardState(entire_game_state):
     temp_global_game_state = computeGlobalState(entire_game_state)
     return check_current_state(temp_global_game_state)
 
+def getAllBlankSpacesInLocalBoard(board):
+    allBlankSpaces = []
+    for i in range(9):
+        if board[int(i/3)][i%3] == ' ':
+            allBlankSpaces.append(i)
+    return allBlankSpaces
+
+def getAllLegalMoves(entire_game_state, localBoardIndex):
+    allLegalMoves = []
+    if check_current_state(entire_game_state[localBoardIndex]) == None:
+        for i in getAllBlankSpacesInLocalBoard(entire_game_state[localBoardIndex]):
+            allLegalMoves.append([i, localBoardIndex])
+
+    else:
+        for j in range(9):
+            for i in getAllBlankSpacesInLocalBoard(entire_game_state[j]):
+                allLegalMoves.append([i, localBoardIndex])
+
+    return allLegalMoves
+
 def getFirstAvailableBoard(entire_game_state):
     for i in range(9):
         if check_current_state(entire_game_state[i]) == None:
