@@ -6,6 +6,9 @@ from HelperFunctions import *
 class MonteCarloTreeSearchNode():
 
     def __init__(self, player, entire_game_state, localBoardIndex, parent=None):
+        # print('player: ', player, ', entire_game_state: ', entire_game_state)
+        # printEntireBoard(entire_game_state)
+        # TODO add property for assiocated move
         self.player = player
         self.entire_game_state = entire_game_state
         self.localBoardIndex = localBoardIndex
@@ -33,7 +36,8 @@ class MonteCarloTreeSearchNode():
 
     def expand(self):
         [position, localBoardIndex] = self.untried_actions.pop()
-        next_entire_game_state = play_move(self.player, localBoardIndex, position)
+        play_move(self.player, self.entire_game_state[localBoardIndex], position) # TODO pass a copy into the new node?
+        next_entire_game_state = copyEntireState(self.entire_game_state)
         next_localBoardIndex = position
         next_player = getOpponent(self.player)
         child_node = MonteCarloTreeSearchNode(
@@ -51,11 +55,22 @@ class MonteCarloTreeSearchNode():
         current_rollout_state = self.entire_game_state
         current_localBoardIndex = self.localBoardIndex
         current_player = self.player
-        while checkEntireBoardState(current_rollout_state) != None:
-            getOpponent(current_player) # TODO before or after playMove? to prevent init player from going twice in a row
+        while checkEntireBoardState(current_rollout_state) == None:            
+            printEntireBoard(current_rollout_state)
+            print('currentPlayer: ', current_player)
+
             possible_moves = getAllLegalMoves(current_rollout_state, current_localBoardIndex)
-            [position, current_localBoardIndex] = self.rollout_policy(possible_moves) # TODO return [] or tuple ()?
-            current_rollout_state = play_move(self.player, current_localBoardIndex, position)
+            print('possible_moves: ', possible_moves)
+
+            [position, localBoardIndex_playedIn] = self.rollout_policy(possible_moves) # TODO return [] or tuple ()?          
+            play_move(current_player, current_rollout_state[localBoardIndex_playedIn], position)
+            localWinner = check_current_state(current_rollout_state[localBoardIndex_playedIn])
+            if localWinner != None:
+                fillAllLocalEmptySpaces(current_rollout_state[localBoardIndex_playedIn])
+            
+            current_player = getOpponent(current_player) # TODO before or after playMove? to prevent init player from going twice in a row
+            current_localBoardIndex = position
+            print('position, localBoardIndex_playedIn, current_localBoardIndex: ', position, localBoardIndex_playedIn, current_localBoardIndex)
         winner = checkEntireBoardState(current_rollout_state)
         if winner == 'O':
             return 1

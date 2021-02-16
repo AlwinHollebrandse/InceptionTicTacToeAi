@@ -1,10 +1,11 @@
-def play_move(player, localBoardIndex, position):
-    if localBoardIndex[int(position/3)][position%3] == ' ':
-        localBoardIndex[int(position/3)][position%3] = player
+def play_move(player, localBoard, position):
+    # print('player, localBoard, position:', player, localBoard, position)
+    if localBoard[int(position/3)][position%3] == ' ':
+        localBoard[int(position/3)][position%3] = player
         return position
     else:
         position = getInputAsValidNumber('That position is not empty, ya blockhead! Choose again (0 to 8): ', 8)
-        return play_move(player, localBoardIndex, position)
+        return play_move(player, localBoard, position)
 
 def check_current_state(board):    
     # Check horizontals
@@ -56,6 +57,17 @@ def checkEntireBoardState(entire_game_state):
     temp_global_game_state = computeGlobalState(entire_game_state)
     return check_current_state(temp_global_game_state)
 
+def copyLocalState(localBoard):
+    temp_state = [[' ',' ',' '],
+                  [' ',' ',' '],
+                  [' ',' ',' ']]
+    for i in range(9):
+        temp_state[int(i/3)][i%3] = localBoard[int(i/3)][i%3]
+    return temp_state
+
+def copyEntireState(entire_game_state):
+    return [copyLocalState(entire_game_state[i]) for i in range(9)]
+
 def getAllBlankSpacesInLocalBoard(board):
     allBlankSpaces = []
     for i in range(9):
@@ -72,7 +84,7 @@ def getAllLegalMoves(entire_game_state, localBoardIndex):
     else:
         for j in range(9):
             for i in getAllBlankSpacesInLocalBoard(entire_game_state[j]):
-                allLegalMoves.append([i, localBoardIndex])
+                allLegalMoves.append([i, j])
 
     return allLegalMoves
 
