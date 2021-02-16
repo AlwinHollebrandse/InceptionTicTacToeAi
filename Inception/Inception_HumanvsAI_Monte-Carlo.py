@@ -11,11 +11,9 @@ def monteCarlo_best_action(rootNode, simulations_number):
         reward = v.rollout()
         v.backpropagate(reward)
     # to select best child go for exploitation only
-    # TODO handle the board index as well as position
-    print('best child:', rootNode.best_child(c_param=0.)) # TODO BUG this should only have 1 move placed 
-    print('root: ', rootNode.entire_game_state)
-    print('best: ', rootNode.best_child(c_param=0.).entire_game_state)
-    return rootNode.best_child(c_param=0.)
+    preMoveEntireBoard = rootNode.entire_game_state
+    postMoveEntireBoard = rootNode.best_child(c_param=0.).entire_game_state
+    return getMove(preMoveEntireBoard, postMoveEntireBoard)
 
 # selects node to run rollout/playout for
 def tree_policy(rootNode):
@@ -26,6 +24,7 @@ def tree_policy(rootNode):
         else:
             current_node = current_node.best_child()
     return current_node
+    # TODO BUG only returns the last availabel position...
 
 def main():
     play_again = 'Y'

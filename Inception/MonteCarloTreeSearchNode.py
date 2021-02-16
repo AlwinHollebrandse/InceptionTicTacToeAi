@@ -52,7 +52,7 @@ class MonteCarloTreeSearchNode():
         return True
 
     def rollout(self):
-        current_rollout_state = self.entire_game_state
+        current_rollout_state = copyEntireState(self.entire_game_state)
         current_localBoardIndex = self.localBoardIndex
         current_player = self.player
         while checkEntireBoardState(current_rollout_state) == None:            

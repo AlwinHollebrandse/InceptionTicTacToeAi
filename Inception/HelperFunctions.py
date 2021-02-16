@@ -178,3 +178,12 @@ def getOpponent(player):
     if player == 'X':
         return 'O'
     return 'X'
+
+def getMove(preMoveEntireBoard, postMoveEntireBoard):
+    for localBoardIndex in range(9):
+        for i in range(9):
+            if preMoveEntireBoard[localBoardIndex][int(i/3)][i%3] != postMoveEntireBoard[localBoardIndex][int(i/3)][i%3]:
+                return [i, localBoardIndex]
+    print('ERROR no difference found')
+    return None
+    
