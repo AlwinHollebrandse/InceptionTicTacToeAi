@@ -36,8 +36,8 @@ class MonteCarloTreeSearchNode():
 
     def expand(self):
         [position, localBoardIndex] = self.untried_actions.pop()
-        play_move(self.player, self.entire_game_state[localBoardIndex], position) # TODO pass a copy into the new node?
         next_entire_game_state = copyEntireState(self.entire_game_state)
+        play_move(self.player, next_entire_game_state[localBoardIndex], position) # TODO pass a copy into the new node?
         next_localBoardIndex = position
         next_player = getOpponent(self.player)
         child_node = MonteCarloTreeSearchNode(

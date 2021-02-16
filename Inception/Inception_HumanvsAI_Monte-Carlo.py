@@ -12,7 +12,7 @@ def monteCarlo_best_action(rootNode, simulations_number):
         v.backpropagate(reward)
     # to select best child go for exploitation only
     # TODO handle the board index as well as position
-    print('best child:', rootNode.best_child(c_param=0.))
+    print('best child:', rootNode.best_child(c_param=0.)) # TODO BUG this should only have 1 move placed 
     print('root: ', rootNode.entire_game_state)
     print('best: ', rootNode.best_child(c_param=0.).entire_game_state)
     return rootNode.best_child(c_param=0.)
