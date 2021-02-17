@@ -56,11 +56,11 @@ class MonteCarloTreeSearchNode():
         current_localBoardIndex = self.localBoardIndex
         current_player = self.player
         while checkEntireBoardState(current_rollout_state) == None:            
-            printEntireBoard(current_rollout_state)
-            print('currentPlayer: ', current_player)
+            # printEntireBoard(current_rollout_state)
+            # print('currentPlayer: ', current_player)
 
             possible_moves = getAllLegalMoves(current_rollout_state, current_localBoardIndex)
-            print('possible_moves: ', possible_moves)
+            # print('possible_moves: ', possible_moves)
 
             [position, localBoardIndex_playedIn] = self.rollout_policy(possible_moves) # TODO return [] or tuple ()?          
             play_move(current_player, current_rollout_state[localBoardIndex_playedIn], position)
@@ -70,7 +70,7 @@ class MonteCarloTreeSearchNode():
             
             current_player = getOpponent(current_player) # TODO before or after playMove? to prevent init player from going twice in a row
             current_localBoardIndex = position
-            print('position, localBoardIndex_playedIn, current_localBoardIndex: ', position, localBoardIndex_playedIn, current_localBoardIndex)
+            # print('position, localBoardIndex_playedIn, current_localBoardIndex: ', position, localBoardIndex_playedIn, current_localBoardIndex)
         winner = checkEntireBoardState(current_rollout_state)
         if winner == 'O':
             return 1
@@ -92,6 +92,7 @@ class MonteCarloTreeSearchNode():
             (c.q / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n))
             for c in self.children
         ]
+        print(np.argmax(choices_weights))
         return self.children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves):        

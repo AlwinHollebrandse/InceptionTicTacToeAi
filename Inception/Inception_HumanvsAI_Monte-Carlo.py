@@ -3,10 +3,11 @@ from HelperFunctions import *
 from MonteCarloTreeSearchNode import MonteCarloTreeSearchNode
 
 PLAYERS = ['X','O']
-simulations_number = 10
+simulations_number = 100
 
 def monteCarlo_best_action(rootNode, simulations_number):
-    for _ in range(0, simulations_number): # TODO or time limit          
+    for _ in range(0, simulations_number): # TODO or time limit
+        # print('yo')    
         v = tree_policy(rootNode)
         reward = v.rollout()
         v.backpropagate(reward)
