@@ -1,13 +1,9 @@
-# https://github.com/int8/monte-carlo-tree-search/blob/master/mctspy/tree/nodes.py
 import numpy as np
 from HelperFunctions import *
 
 class MonteCarloTreeSearchNode():
 
     def __init__(self, player, entire_game_state, localBoardIndex, parent=None):
-        # print('player: ', player, ', entire_game_state: ', entire_game_state)
-        # printEntireBoard(entire_game_state)
-        # TODO add property for assiocated move
         self.player = player
         self.entire_game_state = entire_game_state
         self.localBoardIndex = localBoardIndex
