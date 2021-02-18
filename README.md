@@ -50,6 +50,9 @@ On difficulty 5 (Insane) the ai look ahead by 5 moves. This Ai rewards global wi
 ## How to use
 All dependencies were managed with pipenv. To install them, run ```pipenv install``` while in the folder containing this code. If that is done, run ```pipenv shell``` to enter the virtual env that holds all dependencies.
 
+### Play against the Monte-Carlo Tree Search bot
+```python3 ./Inception/Inception_HumanvsAI_Monte-Carlo.py```
+
 ### Play against the Minimax bot
 ```python3 ./Inception/Inception_HumanvsAI_Minimax.py```
 
