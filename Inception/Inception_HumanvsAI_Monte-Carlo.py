@@ -3,11 +3,10 @@ from HelperFunctions import *
 from MonteCarloTreeSearchNode import MonteCarloTreeSearchNode
 
 PLAYERS = ['X','O']
-simulations_number = 100
+simulations_number = 500
 
 def monteCarlo_best_action(rootNode, simulations_number):
     for _ in range(0, simulations_number): # TODO or time limit TODO break after all possible moves are done?
-        # print('yo')    
         v = tree_policy(rootNode)
         reward = v.rollout()
         v.backpropagate(reward)
@@ -25,17 +24,12 @@ def tree_policy(rootNode):
         else:
             current_node = current_node.best_child()
     return current_node
-    # TODO BUG only returns the last availabel position...
 
 def main():
     play_again = 'Y'
     while play_again.lower() == 'y':
         availableLocalBoards = [i for i in range(9)]
-
-        global_game_state = [[' ',' ',' '],
-                            [' ',' ',' '],
-                            [' ',' ',' ']]
-
+        
         # entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
         #                     [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
         #                     [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
@@ -45,8 +39,8 @@ def main():
                             [['X','-','O'],['X','-','-'],['X','-','O']], [['-','-','-'],['O','X','-'],['O','O','O']], [['-','-','-'],['-','-','X'],['O','O','O']],
                             [['O','O','O'],['-','-','-'],['X','-','-']], [['-','-','O'],['-','-','X'],['X','X','X']], [['O','X',' '],['X','X',' '],['O','O','X']]]
 
-
-        globalWinner = None
+        global_game_state = computeGlobalState(entire_game_state)
+        globalWinner = check_current_state(global_game_state)
 
         print('\nNew Game!')
         printEntireBoard(entire_game_state)
@@ -59,7 +53,7 @@ def main():
         if current_player_idx == 0: # human
             localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Choose which local board to place first (0 to 8): ', 8)
         else: # ai
-            localBoardIndex = 4
+            localBoardIndex = 4 # TODO if this is truely going to teach itself, the ai needs to pick its starting board too
 
         while globalWinner == None:
             position = None
@@ -108,25 +102,3 @@ def main():
     
 if __name__ == '__main__':
     main()
-
-# -----------------------------------------
-# | X | O |   ||| O | X |   ||| X | X | X |
-# -----------------------------------------
-# |   | O |   ||| O | X |   ||| - | - | O |
-# -----------------------------------------
-# | X | X | O |||   | O |   ||| - | - | - |
-# -----------------------------------------
-# -----------------------------------------
-# | X | - | O ||| - | - | - ||| - | - | - |
-# -----------------------------------------
-# | X | - | - ||| O | X | - ||| - | - | X |
-# -----------------------------------------
-# | X | - | O ||| O | O | O ||| O | O | O |
-# -----------------------------------------
-# -----------------------------------------
-# | O | O | O ||| - | - | O ||| O | X |   |
-# -----------------------------------------
-# | - | - | - ||| - | - | X ||| X | X |   |
-# -----------------------------------------
-# | X | - | - ||| X | X | X ||| O | O | X |
-# -----------------------------------------

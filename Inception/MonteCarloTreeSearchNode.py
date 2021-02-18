@@ -60,7 +60,7 @@ class MonteCarloTreeSearchNode():
             if localWinner != None:
                 fillAllLocalEmptySpaces(current_rollout_state[localBoardIndex_playedIn])
             
-            current_player = getOpponent(current_player) # TODO before or after playMove? to prevent init player from going twice in a row
+            current_player = getOpponent(current_player)
             current_localBoardIndex = position
         
         winner = checkEntireBoardState(current_rollout_state)
@@ -79,13 +79,16 @@ class MonteCarloTreeSearchNode():
     def is_fully_expanded(self):
         return len(self.untried_actions) == 0
 
-    def best_child(self, c_param=1.4):
+    def calcUCBs(self, c_param=1.4):
         choices_weights = [
             (c.q / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n))
             for c in self.children
         ]
-        print('best child value:', np.argmax(choices_weights)) # TODO BUG even when a draw was only possible, it was showing positive results? should it only be 0?
-        return self.children[np.argmax(choices_weights)]
+        return choices_weights
+
+    def best_child(self, c_param=1.4):
+        allUCBs = self.calcUCBs(c_param)
+        return self.children[np.argmax(allUCBs)]
 
     def rollout_policy(self, possible_moves):        
         return possible_moves[np.random.randint(len(possible_moves))]

@@ -207,15 +207,12 @@ def aiFaceOff(winningValues, new_population, xPlayerIndex, oPlayerIndex, current
 
     availableLocalBoards = [i for i in range(9)]
 
-    global_game_state = [[' ',' ',' '],
-                        [' ',' ',' '],
-                        [' ',' ',' ']]
-
     entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
                         [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
                         [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
 
-    globalWinner = None
+    global_game_state = computeGlobalState(entire_game_state)
+    globalWinner = check_current_state(global_game_state)
 
     print('\nNew Game! current generation: ', currentGeneration)
     printEntireBoard(entire_game_state)
