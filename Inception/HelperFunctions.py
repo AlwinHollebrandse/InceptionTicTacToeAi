@@ -77,7 +77,7 @@ def getAllBlankSpacesInLocalBoard(board):
 
 def getAllLegalMoves(entire_game_state, localBoardIndex):
     allLegalMoves = []
-    if check_current_state(entire_game_state[localBoardIndex]) == None:
+    if localBoardIndex != None and check_current_state(entire_game_state[localBoardIndex]) == None:
         for i in getAllBlankSpacesInLocalBoard(entire_game_state[localBoardIndex]):
             allLegalMoves.append([i, localBoardIndex])
 

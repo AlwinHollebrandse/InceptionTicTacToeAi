@@ -30,14 +30,14 @@ def main():
     while play_again.lower() == 'y':
         availableLocalBoards = [i for i in range(9)]
         
-        # entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
-        #                     [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
-        #                     [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
+        entire_game_state = [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
+                            [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
+                            [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]
 
         # human must go first and play in board 0 for bug
-        entire_game_state = [[['X','O',' '],[' ','O',' '],['X','X','O']], [['O','X',' '],['O','X',' '],[' ','O',' ']], [['X','X','X'],['-','-','O'],['-','-','-']], 
-                            [['X','-','O'],['X','-','-'],['X','-','O']], [['-','-','-'],['O','X','-'],['O','O','O']], [['-','-','-'],['-','-','X'],['O','O','O']],
-                            [['O','O','O'],['-','-','-'],['X','-','-']], [['-','-','O'],['-','-','X'],['X','X','X']], [['O','X',' '],['X','X',' '],['O','O','X']]]
+        # entire_game_state = [[['X','O',' '],[' ','O',' '],['X','X','O']], [['O','X',' '],['O','X',' '],[' ','O',' ']], [['X','X','X'],['-','-','O'],['-','-','-']], 
+        #                     [['X','-','O'],['X','-','-'],['X','-','O']], [['-','-','-'],['O','X','-'],['O','O','O']], [['-','-','-'],['-','-','X'],['O','O','O']],
+        #                     [['O','O','O'],['-','-','-'],['X','-','-']], [['-','-','O'],['-','-','X'],['X','X','X']], [['O','X',' '],['X','X',' '],['O','O','X']]]
 
         global_game_state = computeGlobalState(entire_game_state)
         globalWinner = check_current_state(global_game_state)
@@ -53,12 +53,12 @@ def main():
         if current_player_idx == 0: # human
             localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Choose which local board to place first (0 to 8): ', 8)
         else: # ai
-            localBoardIndex = 4 # TODO if this is truely going to teach itself, the ai needs to pick its starting board too
+            localBoardIndex = None
 
         while globalWinner == None:
             position = None
-            localWinner = check_current_state(entire_game_state[localBoardIndex])
             if current_player_idx == 0: # Human's turn
+                localWinner = check_current_state(entire_game_state[localBoardIndex])
                 while localWinner != None:
                     localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Local board ' + str(localBoardIndex) + ' was unavailable. Choose which local board to place in: ', 8)
                     localWinner = check_current_state(entire_game_state[localBoardIndex])
