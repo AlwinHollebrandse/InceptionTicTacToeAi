@@ -187,3 +187,9 @@ def getMove(preMoveEntireBoard, postMoveEntireBoard):
     print('ERROR no difference found')
     return None
     
+def getBoardSize():
+    return(9,9)
+
+def getActionSize():
+    return 9*9 + 1 # TODO the base code has a +1, not sure why though https://github.com/suragnair/alpha-zero-general/blob/953a0feea91012cd4fbaaa1a8aecd42f28832eb1/tictactoe/TicTacToeGame.py#L30
+    
