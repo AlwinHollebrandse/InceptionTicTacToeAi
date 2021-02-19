@@ -1,5 +1,7 @@
-# import numpy as np # TODO set up virtual env and pipenv-once there are dependencies
-from HelperFunctions import *
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import HelperFunctions
 from MonteCarloTreeSearchNode import MonteCarloTreeSearchNode
 
 PLAYERS = ['X','O']
@@ -13,7 +15,8 @@ def monteCarlo_best_action(rootNode, simulations_number):
     # to select best child go for exploitation only
     preMoveEntireBoard = rootNode.entire_game_state
     postMoveEntireBoard = rootNode.best_child(c_param=0.).entire_game_state
-    return getMove(preMoveEntireBoard, postMoveEntireBoard)
+    return HelperFunctions.getMove(preMoveEntireBoard, postMoveEntireBoard)
+    # TODO could save state of best child for next move when ai vs ai
 
 # selects node to run rollout/playout for
 def tree_policy(rootNode):
@@ -39,11 +42,11 @@ def main():
         #                     [['X','-','O'],['X','-','-'],['X','-','O']], [['-','-','-'],['O','X','-'],['O','O','O']], [['-','-','-'],['-','-','X'],['O','O','O']],
         #                     [['O','O','O'],['-','-','-'],['X','-','-']], [['-','-','O'],['-','-','X'],['X','X','X']], [['O','X',' '],['X','X',' '],['O','O','X']]]
 
-        global_game_state = computeGlobalState(entire_game_state)
-        globalWinner = check_current_state(global_game_state)
+        global_game_state = HelperFunctions.computeGlobalState(entire_game_state)
+        globalWinner = HelperFunctions.check_current_state(global_game_state)
 
         print('\nNew Game!')
-        printEntireBoard(entire_game_state)
+        HelperFunctions.printEntireBoard(entire_game_state)
         player_choice = input('Choose which player goes first - X(human) or O(Monte-Carlo AI): ')
         if player_choice.lower() == 'x':
             current_player_idx = 0
@@ -51,47 +54,46 @@ def main():
             current_player_idx = 1
             
         if current_player_idx == 0: # human
-            localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Choose which local board to place first (0 to 8): ', 8)
+            localBoardIndex = HelperFunctions.getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Choose which local board to place first (0 to 8): ', 8)
         else: # ai
             localBoardIndex = None
 
         while globalWinner == None:
             position = None
             if current_player_idx == 0: # Human's turn
-                localWinner = check_current_state(entire_game_state[localBoardIndex])
+                localWinner = HelperFunctions.check_current_state(entire_game_state[localBoardIndex])
                 while localWinner != None:
-                    localBoardIndex = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Local board ' + str(localBoardIndex) + ' was unavailable. Choose which local board to place in: ', 8)
-                    localWinner = check_current_state(entire_game_state[localBoardIndex])
-                position = getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! localBoardIndex: ' + str(localBoardIndex) + '. Choose where to place (0 to 8): ', 8)
+                    localBoardIndex = HelperFunctions.getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! Local board ' + str(localBoardIndex) + ' was unavailable. Choose which local board to place in: ', 8)
+                    localWinner = HelperFunctions.check_current_state(entire_game_state[localBoardIndex])
+                position = HelperFunctions.getInputAsValidNumber(str(PLAYERS[current_player_idx]) + '\'s Turn! localBoardIndex: ' + str(localBoardIndex) + '. Choose where to place (0 to 8): ', 8)
 
             else: # AI's turn
                 print('AI is plotting your doom')
                 rootNode = MonteCarloTreeSearchNode(player='O', entire_game_state=entire_game_state, localBoardIndex=localBoardIndex)
                 (position, localBoardIndex) = monteCarlo_best_action(rootNode, simulations_number)
-                # (maxMoveValue, position, localBoardIndex) = optimizeMove(player='O', entire_game_state=entire_game_state, localBoardIndex=localBoardIndex, moveValue=0, maxDepth=maxDepth, currentDepth=0, difficulty=difficulty, alpha=-100, beta=100)
 
-            nextLocalBoard = play_move(PLAYERS[current_player_idx], entire_game_state[localBoardIndex], position)
-            localWinner = check_current_state(entire_game_state[localBoardIndex])
+            nextLocalBoard = HelperFunctions.play_move(PLAYERS[current_player_idx], entire_game_state[localBoardIndex], position)
+            localWinner = HelperFunctions.check_current_state(entire_game_state[localBoardIndex])
             if localWinner != None:
                 print('localWinner: ' + str(localWinner))
                 # print('available localboards: ' + ', '.join(str(x) for x in availableLocalBoards))
                 availableLocalBoards.remove(localBoardIndex)
-                fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
+                HelperFunctions.fillAllLocalEmptySpaces(entire_game_state[localBoardIndex])
                 global_game_state[int(localBoardIndex/3)][localBoardIndex%3] = localWinner
                 # print_board(global_game_state)
 
             if current_player_idx == 1: # ai
-                print_board(global_game_state)
-                printEntireBoard(entire_game_state)
+                HelperFunctions.print_board(global_game_state)
+                HelperFunctions.printEntireBoard(entire_game_state)
                 print('ai placed at localBoardIndex: ' + str(localBoardIndex) + ', position: ' + str(position))
             
             localBoardIndex = nextLocalBoard
-            globalWinner = check_current_state(global_game_state)
+            globalWinner = HelperFunctions.check_current_state(global_game_state)
             if globalWinner == '-':
-                print_board(global_game_state)
+                HelperFunctions.print_board(global_game_state)
                 print('Draw!')
             elif globalWinner != None:
-                print_board(global_game_state)
+                HelperFunctions.print_board(global_game_state)
                 print(str(globalWinner) + ' won!')
             else:
                 current_player_idx = (current_player_idx + 1)%2

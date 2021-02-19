@@ -1,5 +1,9 @@
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import numpy as np
-from HelperFunctions import *
+# from HelperFunctions import *
+import HelperFunctions
 
 class MonteCarloTreeSearchNode():
 
@@ -16,7 +20,7 @@ class MonteCarloTreeSearchNode():
     @property
     def untried_actions(self):
         if self._untried_actions is None:
-            self._untried_actions = getAllLegalMoves(self.entire_game_state, self.localBoardIndex)
+            self._untried_actions = HelperFunctions.getAllLegalMoves(self.entire_game_state, self.localBoardIndex)
         return self._untried_actions
 
     @property
@@ -29,10 +33,10 @@ class MonteCarloTreeSearchNode():
 
     def expand(self):
         [position, localBoardIndex] = self.untried_actions.pop()
-        next_entire_game_state = copyEntireState(self.entire_game_state)
-        play_move(self.player, next_entire_game_state[localBoardIndex], position) # TODO pass a copy into the new node?
+        next_entire_game_state = HelperFunctions.copyEntireState(self.entire_game_state)
+        HelperFunctions.play_move(self.player, next_entire_game_state[localBoardIndex], position) # TODO pass a copy into the new node?
         next_localBoardIndex = position
-        next_player = getOpponent(self.player)
+        next_player = HelperFunctions.getOpponent(self.player)
         child_node = MonteCarloTreeSearchNode(
             next_player, next_entire_game_state, next_localBoardIndex, parent=self
         )
@@ -40,26 +44,26 @@ class MonteCarloTreeSearchNode():
         return child_node
 
     def is_terminal_node(self):
-        if checkEntireBoardState(self.entire_game_state) == None:
+        if HelperFunctions.checkEntireBoardState(self.entire_game_state) == None:
             return False
         return True
 
     def rollout(self):
-        current_rollout_state = copyEntireState(self.entire_game_state)
+        current_rollout_state = HelperFunctions.copyEntireState(self.entire_game_state)
         current_localBoardIndex = self.localBoardIndex
         current_player = self.player
-        while checkEntireBoardState(current_rollout_state) == None:            
-            possible_moves = getAllLegalMoves(current_rollout_state, current_localBoardIndex)
-            [position, localBoardIndex_playedIn] = self.rollout_policy(possible_moves) # TODO return [] or tuple ()?          
-            play_move(current_player, current_rollout_state[localBoardIndex_playedIn], position)
-            localWinner = check_current_state(current_rollout_state[localBoardIndex_playedIn])
+        while HelperFunctions.checkEntireBoardState(current_rollout_state) == None:            
+            possible_moves = HelperFunctions.getAllLegalMoves(current_rollout_state, current_localBoardIndex)
+            [position, localBoardIndex_playedIn] = self.rollout_policy(possible_moves)   
+            HelperFunctions.play_move(current_player, current_rollout_state[localBoardIndex_playedIn], position)
+            localWinner = HelperFunctions.check_current_state(current_rollout_state[localBoardIndex_playedIn])
             if localWinner != None:
-                fillAllLocalEmptySpaces(current_rollout_state[localBoardIndex_playedIn])
+                HelperFunctions.fillAllLocalEmptySpaces(current_rollout_state[localBoardIndex_playedIn])
             
-            current_player = getOpponent(current_player)
+            current_player = HelperFunctions.getOpponent(current_player)
             current_localBoardIndex = position
         
-        winner = checkEntireBoardState(current_rollout_state)
+        winner = HelperFunctions.checkEntireBoardState(current_rollout_state)
         if winner == 'O':
             return 1
         elif winner == 'X':
