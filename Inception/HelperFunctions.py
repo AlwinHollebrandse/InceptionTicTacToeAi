@@ -1,3 +1,6 @@
+# TODO refactor so this is a game class that holds all game board info. ex: https://github.com/suragnair/alpha-zero-general/blob/953a0feea91012cd4fbaaa1a8aecd42f28832eb1/tictactoe/TicTacToeGame.py#L30
+# TODO if done, could readd "game" as a param for most alphaZero files
+
 def play_move(player, localBoard, position):
     # print('player, localBoard, position:', player, localBoard, position)
     if localBoard[int(position/3)][position%3] == ' ':
@@ -56,6 +59,12 @@ def computeGlobalState(entire_game_state):
 def checkEntireBoardState(entire_game_state):
     temp_global_game_state = computeGlobalState(entire_game_state)
     return check_current_state(temp_global_game_state)
+
+# TODO can replace alot of checkEntireBoardState(entire_game_state) with this method
+def isGameOver(entire_game_state):
+    if checkEntireBoardState(entire_game_state) == None:
+        return False
+    return True
 
 def copyLocalState(localBoard):
     temp_state = [[' ',' ',' '],
@@ -193,3 +202,7 @@ def getBoardSize():
 def getActionSize():
     return 9*9 + 1 # TODO the base code has a +1, not sure why though https://github.com/suragnair/alpha-zero-general/blob/953a0feea91012cd4fbaaa1a8aecd42f28832eb1/tictactoe/TicTacToeGame.py#L30
     
+def getInitBoard():
+    return [[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], 
+            [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']],
+            [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']], [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]]

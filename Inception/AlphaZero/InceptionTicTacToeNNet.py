@@ -2,6 +2,7 @@ import argparse
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import HelperFunctions
 import keras
 import keras.layers as kl
 import keras.models as km
@@ -14,10 +15,10 @@ Date: Jan 5, 2018.
 Based on the OthelloNNet by SourKream and Surag Nair.
 """
 class TicTacToeNNet():
-    def __init__(self, game, args):
+    def __init__(self, args):
         # game params
-        self.board_x, self.board_y = game.getBoardSize()
-        self.action_size = game.getActionSize()
+        self.board_x, self.board_y = HelperFunctions.getBoardSize()
+        self.action_size = HelperFunctions.getActionSize()
         self.args = args
 
         # Neural Net

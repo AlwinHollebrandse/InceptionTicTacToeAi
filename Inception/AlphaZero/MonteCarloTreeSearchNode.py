@@ -62,10 +62,11 @@ class MonteCarloTreeSearchNode():
             current_player = HelperFunctions.getOpponent(current_player)
             current_localBoardIndex = position
         
+        # TODO does the winner value change depending on who the winner is?
         winner = HelperFunctions.checkEntireBoardState(current_rollout_state)
-        if winner == 'O':
+        if winner == self.player:
             return 1
-        elif winner == 'X':
+        elif winner == HelperFunctions.getOpponent(self.player):
             return -1
         return 0
 

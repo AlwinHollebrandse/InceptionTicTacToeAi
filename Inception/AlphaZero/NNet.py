@@ -9,7 +9,7 @@ import argparse
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# from utils import *
+import HelperFunctions
 from NeuralNet import NeuralNet
 from InceptionTicTacToeNNet import TicTacToeNNet as onnet
 
@@ -29,20 +29,11 @@ args = {
     'num_channels': 512,
 }
 
-# args = dotdict({
-#     'lr': 0.001,
-#     'dropout': 0.3,
-#     'epochs': 10,
-#     'batch_size': 64,
-#     'cuda': False,
-#     'num_channels': 512,
-# })
-
 class NNetWrapper(NeuralNet):
-    def __init__(self, game):
-        self.nnet = onnet(game, args)
-        self.board_x, self.board_y = game.getBoardSize()
-        self.action_size = game.getActionSize()
+    def __init__(self):
+        self.nnet = onnet(args)
+        self.board_x, self.board_y = HelperFunctions.getBoardSize()
+        self.action_size = HelperFunctions.getActionSize()
 
     def train(self, examples):
         """
